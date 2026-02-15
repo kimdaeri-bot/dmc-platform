@@ -35,13 +35,32 @@ title: 대시보드 - DMC 투어링크
 .dash-empty{text-align:center;padding:60px 20px;color:var(--gray-500)}
 .dash-empty .icon{font-size:48px;margin-bottom:12px}
 .back-btn{background:none;border:none;color:var(--navy);font-weight:700;cursor:pointer;font-size:14px;margin-bottom:16px;padding:0}
-@media(max-width:768px){.dash-wrap{flex-direction:column}.dash-side{width:100%;display:flex;overflow-x:auto;padding:12px}.dash-side h2{display:none}.dash-side a{white-space:nowrap;padding:8px 16px}.dash-content{padding:16px}}
+.url-form{background:#fff;border:2px solid var(--gray-200);border-radius:12px;padding:24px;margin-bottom:20px}
+.url-form h3{font-size:18px;font-weight:700;color:var(--navy);margin-bottom:8px}
+.url-form p{font-size:13px;color:var(--gray-500);margin-bottom:16px}
+.url-form .input-row{display:flex;gap:8px}
+.url-form input[type="url"]{flex:1;padding:12px 14px;border:1px solid var(--gray-300);border-radius:8px;font-family:inherit;font-size:14px}
+.url-form input[type="url"]:focus{outline:none;border-color:var(--navy)}
+.url-form button{padding:12px 24px;white-space:nowrap}
+.req-card{background:#fff;border:2px solid var(--gray-200);border-radius:12px;padding:16px;margin-bottom:10px;transition:border-color .2s}
+.req-card:hover{border-color:var(--navy)}
+.req-card h4{font-size:14px;font-weight:700;color:var(--navy);margin-bottom:4px;word-break:break-all}
+.req-card .req-meta{font-size:12px;color:var(--gray-500)}
+.req-badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700}
+.req-badge.pending{background:#fff3e0;color:#e65100}
+.req-badge.processing{background:#e3f2fd;color:#1565c0}
+.req-badge.done{background:#e8f5e9;color:#2e7d32}
+.req-badge.error{background:#ffebee;color:#c62828}
+.parsed-preview{margin-top:12px;padding:12px;background:var(--gray-50);border-radius:8px;font-size:13px;line-height:1.6}
+.parsed-preview strong{color:var(--navy)}
+@media(max-width:768px){.dash-wrap{flex-direction:column}.dash-side{width:100%;display:flex;overflow-x:auto;padding:12px}.dash-side h2{display:none}.dash-side a{white-space:nowrap;padding:8px 16px}.dash-content{padding:16px}.url-form .input-row{flex-direction:column}}
 </style>
 
 <div class="dash-wrap">
   <nav class="dash-side">
     <h2>📋 대시보드</h2>
     <a href="#" class="active" id="navInquiries">💬 문의 관리</a>
+    <a href="#" id="navProducts">📦 상품 등록</a>
     <a href="#" id="navProfile">👤 내 정보</a>
   </nav>
   <div class="dash-content" id="dashContent">
@@ -63,10 +82,16 @@ document.addEventListener('dmcAuthReady', function(e) {
       '<div class="dash-empty"><div class="icon">⏳</div><h3>승인 대기 중</h3><p>관리자 승인 후 이용 가능합니다.</p></div>';
     return;
   }
+  // DMC/admin만 상품 등록 탭 표시
+  var prodNav = document.getElementById('navProducts');
+  if (u.profile.role !== 'dmc' && u.profile.role !== 'admin') {
+    prodNav.style.display = 'none';
+  }
   loadInquiries();
 });
 
 document.getElementById('navInquiries').onclick = function(e){ e.preventDefault(); loadInquiries(); setActive(this); };
+document.getElementById('navProducts').onclick = function(e){ e.preventDefault(); loadProducts(); setActive(this); };
 document.getElementById('navProfile').onclick = function(e){ e.preventDefault(); loadProfile(); setActive(this); };
 
 function setActive(el){
@@ -174,6 +199,98 @@ function loadProfile() {
     '<p><strong>역할:</strong> ' + roleLabel(p.role) + '</p>' +
     '<p><strong>상태:</strong> <span class="inq-badge ' + p.status + '">' + statusLabel(p.status) + '</span></p>' +
     '</div>';
+}
+
+function loadProducts() {
+  var u = window.DMC_USER;
+  var content = document.getElementById('dashContent');
+  var isDmc = u.profile.role === 'dmc' || u.profile.role === 'admin';
+  
+  content.innerHTML = '<h1 class="dash-title">📦 상품 등록</h1>' +
+    (isDmc ? '<div class="url-form">' +
+      '<h3>🔗 투어 URL로 자동 등록</h3>' +
+      '<p>투어 상품 페이지 URL을 입력하면 AI가 자동으로 분석해서 상품 정보를 추출합니다.</p>' +
+      '<div class="input-row">' +
+        '<input type="url" id="tourUrlInput" placeholder="https://example.com/tour/..." />' +
+        '<button class="btn btn-primary" onclick="submitUrl()">분석 요청</button>' +
+      '</div>' +
+      '<div id="submitMsg" style="margin-top:8px;font-size:13px"></div>' +
+    '</div>' : '') +
+    '<div id="reqList"><p>로딩 중...</p></div>';
+
+  var query;
+  if (u.profile.role === 'admin') {
+    query = db.collection('url_requests').orderBy('createdAt', 'desc').limit(50);
+  } else {
+    query = db.collection('url_requests').where('submitterUid', '==', u.uid).orderBy('createdAt', 'desc').limit(50);
+  }
+  
+  query.get().then(function(snap) {
+    var list = document.getElementById('reqList');
+    if (snap.empty) {
+      list.innerHTML = '<div class="dash-empty"><div class="icon">📦</div><p>등록 요청이 없습니다. URL을 입력해 첫 상품을 등록해보세요!</p></div>';
+      return;
+    }
+    var html = '';
+    snap.forEach(function(doc) {
+      var d = doc.data();
+      var date = d.createdAt ? new Date(d.createdAt.seconds * 1000).toLocaleString('ko-KR') : '';
+      var preview = '';
+      if (d.status === 'done' && d.parsedData) {
+        var p = d.parsedData;
+        preview = '<div class="parsed-preview">' +
+          '<strong>' + esc(p.tourName || '') + '</strong><br>' +
+          (p.destination ? '📍 ' + esc(p.destination) + '<br>' : '') +
+          (p.duration ? '⏱ ' + esc(p.duration) + '<br>' : '') +
+          (p.price ? '💰 ' + esc(p.price) : '') +
+          '</div>';
+      }
+      if (d.status === 'error' && d.errorMsg) {
+        preview = '<div class="parsed-preview" style="color:#c62828">❌ ' + esc(d.errorMsg) + '</div>';
+      }
+      html += '<div class="req-card">' +
+        '<h4>🔗 ' + esc(d.url) + '</h4>' +
+        '<div class="req-meta">' +
+          '<span class="req-badge ' + d.status + '">' + reqStatusLabel(d.status) + '</span> · ' + date +
+        '</div>' + preview + '</div>';
+    });
+    list.innerHTML = html;
+  }).catch(function(err) {
+    console.error('loadProducts error:', err);
+    document.getElementById('reqList').innerHTML = '<p style="color:#c62828">오류: ' + err.message + '</p>';
+  });
+}
+
+function submitUrl() {
+  var input = document.getElementById('tourUrlInput');
+  var msg = document.getElementById('submitMsg');
+  var url = input.value.trim();
+  
+  if (!url) { msg.innerHTML = '<span style="color:#c62828">URL을 입력해주세요.</span>'; return; }
+  if (!url.match(/^https?:\/\/.+/)) { msg.innerHTML = '<span style="color:#c62828">올바른 URL을 입력해주세요.</span>'; return; }
+  
+  var u = window.DMC_USER;
+  msg.innerHTML = '⏳ 제출 중...';
+  
+  db.collection('url_requests').add({
+    url: url,
+    submitterUid: u.uid,
+    submitterName: u.profile.companyNameKr || u.profile.contactName || '',
+    submitterEmail: u.profile.email || '',
+    status: 'pending',
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  }).then(function() {
+    input.value = '';
+    msg.innerHTML = '<span style="color:#2e7d32">✅ 제출 완료! AI가 분석 중입니다. 잠시 후 결과를 확인하세요.</span>';
+    setTimeout(function(){ loadProducts(); }, 1500);
+  }).catch(function(err) {
+    msg.innerHTML = '<span style="color:#c62828">오류: ' + err.message + '</span>';
+  });
+}
+
+function reqStatusLabel(s) {
+  return {pending:'⏳ 대기',processing:'🔄 분석중',done:'✅ 완료',error:'❌ 실패'}[s] || s;
 }
 
 function statusLabel(s){return{open:'접수',
