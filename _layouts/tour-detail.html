@@ -300,10 +300,41 @@ layout: default
         <div>🗣️ {{ t.languages | join: ", " }}</div>
       </div>
       {% if t.departures %}
-      <div class="booking-next">
-        <div class="booking-next-label">다음 출발일</div>
-        <div class="booking-next-date">{{ t.departures[0].date }}</div>
+      <div class="booking-calendar" id="bookingCalendar">
+        <div class="cal-header">
+          <button class="cal-nav" id="calPrev">◀</button>
+          <span class="cal-month" id="calMonth"></span>
+          <button class="cal-nav" id="calNext">▶</button>
+        </div>
+        <div class="cal-weekdays">
+          <span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span>
+        </div>
+        <div class="cal-days" id="calDays"></div>
       </div>
+      <script>
+      (function(){
+        var deps = [{% for dep in t.departures %}'{{ dep.date }}'{% unless forloop.last %},{% endunless %}{% endfor %}];
+        var depDates = deps.map(function(d){ return d.replace(/-/g,''); });
+        var now = deps[0] ? new Date(deps[0]) : new Date();
+        var cy = now.getFullYear(), cm = now.getMonth();
+        function render(){
+          document.getElementById('calMonth').textContent = cy+'년 '+(cm+1)+'월';
+          var first = new Date(cy,cm,1), last = new Date(cy,cm+1,0);
+          var startDay = first.getDay(), totalDays = last.getDate();
+          var html = '';
+          for(var i=0;i<startDay;i++) html+='<span class="cal-empty"></span>';
+          for(var d=1;d<=totalDays;d++){
+            var key = cy+String(cm+1).padStart(2,'0')+String(d).padStart(2,'0');
+            var isDep = depDates.indexOf(key)!==-1;
+            html+='<span class="cal-day'+(isDep?' cal-dep':'')+'">'+d+'</span>';
+          }
+          document.getElementById('calDays').innerHTML=html;
+        }
+        document.getElementById('calPrev').onclick=function(){cm--;if(cm<0){cm=11;cy--;}render();};
+        document.getElementById('calNext').onclick=function(){cm++;if(cm>11){cm=0;cy++;}render();};
+        render();
+      })();
+      </script>
       {% endif %}
       <button class="btn btn-primary btn-lg booking-btn" onclick="openInquiry('{{ t.title }}','{{ t.duration }}','{{ t.priceFrom }}','{{ operator.name | default: "" }}','{{ operator.contact.email | default: "" }}')">문의하기</button>
       <a href="#departures" class="booking-all-dates">모든 출발일 보기 ↓</a>
