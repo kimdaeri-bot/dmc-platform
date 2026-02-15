@@ -58,9 +58,7 @@ title: 백오피스 - DMC 투어링크
     </div>
     <div class="admin-panel active" id="panel-members"></div>
     <div class="admin-panel" id="panel-inquiries"></div>
-    <div class="admin-panel" id="panel-products">
-      <div class="admin-empty"><p>📦 상품 관리 기능은 준비 중입니다.</p></div>
-    </div>
+    <div class="admin-panel" id="panel-products"></div>
   </div>
 </div>
 
@@ -78,6 +76,7 @@ document.addEventListener('dmcAuthReady', function(e) {
   document.getElementById('adminMain').style.display = 'block';
   loadMembers();
   loadAdminInquiries();
+  loadProducts();
 });
 
 function switchTab(name, btn) {
@@ -239,4 +238,172 @@ function changeInqStatus(id, status) {
 
 function statusLabel(s){return{open:'접수','in-progress':'진행중',closed:'완료'}[s]||s}
 function esc(s){if(!s)return'';var d=document.createElement('div');d.textContent=s;return d.innerHTML}
+
+// === Products (parsed_tours) ===
+var productFilter = 'pending';
+var productView = 'list'; // list | detail | add
+
+function loadProducts() {
+  productView = 'list';
+  var panel = document.getElementById('panel-products');
+  panel.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">' +
+    '<div class="sub-tabs">' +
+    '<button class="sub-tab' + (productFilter==='pending'?' active':'') + '" onclick="productFilter=\'pending\';loadProducts()">⏳ 검토 대기</button>' +
+    '<button class="sub-tab' + (productFilter==='approved'?' active':'') + '" onclick="productFilter=\'approved\';loadProducts()">✅ 승인됨</button>' +
+    '<button class="sub-tab' + (productFilter==='rejected'?' active':'') + '" onclick="productFilter=\'rejected\';loadProducts()">❌ 거절</button>' +
+    '<button class="sub-tab' + (productFilter==='all'?' active':'') + '" onclick="productFilter=\'all\';loadProducts()">📋 전체</button>' +
+    '</div>' +
+    '<button class="action-btn btn-approve" style="padding:10px 20px;font-size:14px" onclick="showAddProduct()">➕ 수동 추가</button>' +
+    '</div><div id="productList"><p>로딩 중...</p></div>';
+
+  db.collection('parsed_tours').orderBy('createdAt','desc').get().then(function(snap) {
+    var list = document.getElementById('productList');
+    if (!list) return;
+    var docs = [];
+    snap.forEach(function(doc) {
+      var d = doc.data(); d._id = doc.id;
+      if (productFilter === 'all' || d.status === productFilter) docs.push(d);
+    });
+    if (docs.length === 0) { list.innerHTML = '<div class="admin-empty"><p>상품이 없습니다.</p></div>'; return; }
+    var statusMap = {pending:'⏳ 대기',approved:'✅ 승인',rejected:'❌ 거절'};
+    var html = '<table class="member-table"><thead><tr><th>상품명</th><th>목적지</th><th>기간</th><th>가격</th><th>DMC</th><th>상태</th><th>등록일</th><th>관리</th></tr></thead><tbody>';
+    docs.forEach(function(d) {
+      var date = d.createdAt ? new Date(d.createdAt.seconds ? d.createdAt.seconds*1000 : d.createdAt).toLocaleDateString('ko-KR') : '-';
+      html += '<tr style="cursor:pointer" onclick="openProductDetail(\'' + d._id + '\')">' +
+        '<td>' + esc(d.tourName) + '</td><td>' + esc(d.destination) + '</td><td>' + esc(d.duration) + '</td>' +
+        '<td>' + esc(d.price) + '</td><td>' + esc(d.dmcName||'') + '</td>' +
+        '<td>' + (statusMap[d.status]||d.status) + '</td><td>' + date + '</td>' +
+        '<td><div onclick="event.stopPropagation()">';
+      if (d.status !== 'approved') html += '<button class="action-btn btn-approve" onclick="quickProductAction(\'' + d._id + '\',\'approved\')">승인</button>';
+      if (d.status !== 'rejected') html += '<button class="action-btn btn-reject" onclick="quickProductAction(\'' + d._id + '\',\'rejected\')">거절</button>';
+      html += '</div></td></tr>';
+    });
+    html += '</tbody></table>';
+    list.innerHTML = html;
+  }).catch(function(e){ document.getElementById('productList').innerHTML = '<p style="color:red">오류: '+e.message+'</p>'; });
+}
+
+function quickProductAction(id, status) {
+  if (!confirm(status==='approved'?'이 상품을 승인하시겠습니까?':'이 상품을 거절하시겠습니까?')) return;
+  db.collection('parsed_tours').doc(id).update({status:status,updatedAt:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){loadProducts();});
+}
+
+function openProductDetail(id) {
+  var panel = document.getElementById('panel-products');
+  panel.innerHTML = '<p>로딩 중...</p>';
+  db.collection('parsed_tours').doc(id).get().then(function(doc) {
+    if (!doc.exists) { panel.innerHTML = '<p>상품을 찾을 수 없습니다.</p>'; return; }
+    var d = doc.data();
+    var fields = [
+      {key:'tourName',label:'상품명',type:'input'},
+      {key:'destination',label:'목적지',type:'input'},
+      {key:'duration',label:'기간',type:'input'},
+      {key:'price',label:'가격',type:'input'},
+      {key:'dmcName',label:'DMC',type:'input'},
+      {key:'imageUrl',label:'이미지 URL',type:'input'},
+      {key:'highlights',label:'하이라이트',type:'textarea'},
+      {key:'itinerary',label:'일정 (Itinerary)',type:'textarea'},
+      {key:'includes',label:'포함 사항',type:'textarea'},
+      {key:'excludes',label:'불포함 사항',type:'textarea'},
+      {key:'description',label:'설명',type:'textarea'}
+    ];
+    var statusMap = {pending:'⏳ 검토 대기',approved:'✅ 승인됨',rejected:'❌ 거절'};
+    var html = '<button class="btn-back" onclick="loadProducts()">← 목록으로</button>';
+    html += '<div class="inq-detail"><h2>' + esc(d.tourName) + '</h2>';
+    html += '<div class="inq-meta">상태: ' + (statusMap[d.status]||d.status) + '</div>';
+    html += '<div style="display:grid;gap:16px;margin-top:16px">';
+    fields.forEach(function(f) {
+      var val = d[f.key];
+      if (Array.isArray(val)) val = val.join('\n');
+      val = val || '';
+      html += '<div><label style="font-size:13px;font-weight:700;color:var(--gray-700);display:block;margin-bottom:4px">' + f.label + '</label>';
+      if (f.type === 'textarea') {
+        html += '<textarea id="pf_'+f.key+'" style="width:100%;min-height:80px;padding:10px;border:1px solid var(--gray-300);border-radius:8px;font-size:14px;font-family:inherit;resize:vertical">' + esc(val) + '</textarea>';
+      } else {
+        html += '<input id="pf_'+f.key+'" type="text" value="' + esc(val).replace(/"/g,'&quot;') + '" style="width:100%;padding:10px;border:1px solid var(--gray-300);border-radius:8px;font-size:14px">';
+      }
+      html += '</div>';
+    });
+    html += '</div>';
+    html += '<div style="display:flex;gap:8px;margin-top:24px">';
+    html += '<button class="action-btn btn-approve" style="padding:12px 24px;font-size:14px" onclick="saveProduct(\''+doc.id+'\',\'approved\')">✅ 승인</button>';
+    html += '<button class="action-btn btn-reject" style="padding:12px 24px;font-size:14px" onclick="saveProduct(\''+doc.id+'\',\'rejected\')">❌ 거절</button>';
+    html += '<button class="action-btn" style="padding:12px 24px;font-size:14px;background:#e3f2fd;color:#1565c0" onclick="saveProduct(\''+doc.id+'\',null)">💾 저장 (상태 유지)</button>';
+    html += '</div></div>';
+    panel.innerHTML = html;
+  });
+}
+
+function saveProduct(id, newStatus) {
+  var fields = ['tourName','destination','duration','price','dmcName','imageUrl','highlights','itinerary','includes','excludes','description'];
+  var data = {updatedAt: firebase.firestore.FieldValue.serverTimestamp()};
+  fields.forEach(function(f) {
+    var el = document.getElementById('pf_'+f);
+    if (!el) return;
+    var v = el.value;
+    if (['highlights','itinerary','includes','excludes'].indexOf(f) >= 0) {
+      data[f] = v.split('\n').filter(function(l){return l.trim();});
+    } else {
+      data[f] = v;
+    }
+  });
+  if (newStatus) data.status = newStatus;
+  db.collection('parsed_tours').doc(id).update(data).then(function() {
+    alert(newStatus==='approved'?'승인 완료!':newStatus==='rejected'?'거절 처리됨':'저장 완료!');
+    loadProducts();
+  }).catch(function(e){alert('오류: '+e.message);});
+}
+
+function showAddProduct() {
+  var panel = document.getElementById('panel-products');
+  var fields = [
+    {key:'tourName',label:'상품명',type:'input'},
+    {key:'destination',label:'목적지',type:'input'},
+    {key:'duration',label:'기간',type:'input'},
+    {key:'price',label:'가격',type:'input'},
+    {key:'dmcName',label:'DMC',type:'input'},
+    {key:'imageUrl',label:'이미지 URL',type:'input'},
+    {key:'highlights',label:'하이라이트 (줄바꿈 구분)',type:'textarea'},
+    {key:'itinerary',label:'일정 (줄바꿈 구분)',type:'textarea'},
+    {key:'includes',label:'포함 사항 (줄바꿈 구분)',type:'textarea'},
+    {key:'excludes',label:'불포함 사항 (줄바꿈 구분)',type:'textarea'},
+    {key:'description',label:'설명',type:'textarea'}
+  ];
+  var html = '<button class="btn-back" onclick="loadProducts()">← 목록으로</button>';
+  html += '<div class="inq-detail"><h2>➕ 수동 상품 추가</h2>';
+  html += '<div style="display:grid;gap:16px;margin-top:16px">';
+  fields.forEach(function(f) {
+    html += '<div><label style="font-size:13px;font-weight:700;color:var(--gray-700);display:block;margin-bottom:4px">' + f.label + '</label>';
+    if (f.type === 'textarea') {
+      html += '<textarea id="pf_'+f.key+'" style="width:100%;min-height:80px;padding:10px;border:1px solid var(--gray-300);border-radius:8px;font-size:14px;font-family:inherit;resize:vertical"></textarea>';
+    } else {
+      html += '<input id="pf_'+f.key+'" type="text" style="width:100%;padding:10px;border:1px solid var(--gray-300);border-radius:8px;font-size:14px">';
+    }
+    html += '</div>';
+  });
+  html += '</div>';
+  html += '<div style="margin-top:24px"><button class="action-btn btn-approve" style="padding:12px 24px;font-size:14px" onclick="submitNewProduct()">💾 저장</button></div>';
+  html += '</div>';
+  panel.innerHTML = html;
+}
+
+function submitNewProduct() {
+  var fields = ['tourName','destination','duration','price','dmcName','imageUrl','highlights','itinerary','includes','excludes','description'];
+  var data = {status:'pending', createdAt:firebase.firestore.FieldValue.serverTimestamp(), updatedAt:firebase.firestore.FieldValue.serverTimestamp()};
+  fields.forEach(function(f) {
+    var el = document.getElementById('pf_'+f);
+    if (!el) return;
+    var v = el.value;
+    if (['highlights','itinerary','includes','excludes'].indexOf(f) >= 0) {
+      data[f] = v.split('\n').filter(function(l){return l.trim();});
+    } else {
+      data[f] = v;
+    }
+  });
+  if (!data.tourName) { alert('상품명을 입력하세요.'); return; }
+  db.collection('parsed_tours').add(data).then(function() {
+    alert('상품이 추가되었습니다.');
+    loadProducts();
+  }).catch(function(e){alert('오류: '+e.message);});
+}
 </script>

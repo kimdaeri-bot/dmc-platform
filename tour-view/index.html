@@ -1,0 +1,79 @@
+---
+layout: default
+title: 투어 상세 - DMC 투어링크
+---
+
+<style>
+.tv-wrap{max-width:var(--max-width);margin:0 auto;padding:32px 20px}
+.tv-hero{width:100%;height:320px;border-radius:16px;overflow:hidden;margin-bottom:24px;background:linear-gradient(135deg,var(--navy),var(--navy-light));display:flex;align-items:center;justify-content:center;color:#fff;font-size:64px}
+.tv-hero img{width:100%;height:100%;object-fit:cover}
+.tv-title{font-size:28px;font-weight:900;color:var(--navy);margin-bottom:8px}
+.tv-meta{font-size:14px;color:var(--gray-700);margin-bottom:24px}
+.tv-section{margin-bottom:24px}
+.tv-section h3{font-size:18px;font-weight:700;color:var(--navy);margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--gray-200)}
+.tv-section ul{list-style:none;padding:0}
+.tv-section li{padding:6px 0;font-size:14px;line-height:1.6;border-bottom:1px solid var(--gray-100)}
+.tv-section li::before{content:'•';color:var(--orange);font-weight:700;margin-right:8px}
+.tv-section p{font-size:14px;line-height:1.7;color:var(--gray-900)}
+.tv-price-box{background:var(--gray-50);border-radius:12px;padding:20px;text-align:center;margin-bottom:24px}
+.tv-price{font-size:28px;font-weight:900;color:var(--orange)}
+.tv-actions{display:flex;gap:12px;margin-top:16px;justify-content:center}
+.tv-grid{display:grid;grid-template-columns:2fr 1fr;gap:32px}
+@media(max-width:768px){.tv-grid{grid-template-columns:1fr}.tv-hero{height:200px}}
+</style>
+
+<div class="tv-wrap">
+  <a href="{{ '/' | relative_url }}" class="btn-back" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border:1px solid var(--gray-300);border-radius:8px;background:#fff;font-size:13px;font-weight:600;cursor:pointer;color:var(--gray-700);margin-bottom:16px;text-decoration:none">← 돌아가기</a>
+  <div id="tourViewContent"><p style="text-align:center;padding:60px;color:var(--gray-500)">로딩 중...</p></div>
+</div>
+
+<script>
+(function(){
+  var params = new URLSearchParams(window.location.search);
+  var tourId = params.get('id');
+  var container = document.getElementById('tourViewContent');
+  if (!tourId) { container.innerHTML = '<p style="text-align:center;color:#c62828">투어 ID가 지정되지 않았습니다.</p>'; return; }
+
+  db.collection('parsed_tours').doc(tourId).get().then(function(doc) {
+    if (!doc.exists || doc.data().status !== 'approved') {
+      container.innerHTML = '<p style="text-align:center;color:#c62828">투어를 찾을 수 없거나 아직 승인되지 않았습니다.</p>';
+      return;
+    }
+    var d = doc.data();
+    var img = d.imageUrl ? '<img src="'+d.imageUrl+'" alt="">' : '🌍';
+    var html = '<div class="tv-hero">'+(d.imageUrl?'<img src="'+esc(d.imageUrl)+'" alt="">':'🌍')+'</div>';
+    html += '<div class="tv-grid"><div>';
+    html += '<h1 class="tv-title">' + esc(d.tourName) + '</h1>';
+    html += '<div class="tv-meta">📍 ' + esc(d.destination||'') + ' · ⏱️ ' + esc(d.duration||'') + (d.dmcName?' · 🏢 '+esc(d.dmcName):'') + '</div>';
+
+    if (d.description) { html += '<div class="tv-section"><h3>📝 설명</h3><p>' + esc(d.description) + '</p></div>'; }
+    if (d.highlights && d.highlights.length) { html += renderList('✨ 하이라이트', d.highlights); }
+    if (d.itinerary && d.itinerary.length) { html += renderList('📅 일정', d.itinerary); }
+    if (d.includes && d.includes.length) { html += renderList('✅ 포함 사항', d.includes); }
+    if (d.excludes && d.excludes.length) { html += renderList('❌ 불포함 사항', d.excludes); }
+
+    html += '</div><div>';
+    html += '<div class="tv-price-box"><div style="font-size:13px;color:var(--gray-700);margin-bottom:8px">가격</div>';
+    html += '<div class="tv-price">' + esc(d.price||'문의') + '</div>';
+    html += '<div class="tv-actions"><button class="btn btn-primary btn-lg" onclick="openInquiryForTour()">💬 문의하기</button></div>';
+    html += '</div></div></div>';
+
+    container.innerHTML = html;
+
+    window.openInquiryForTour = function() {
+      if (typeof InquirySystem !== 'undefined' && InquirySystem.openInquiryModal) {
+        InquirySystem.openInquiryModal(d.tourName, d.dmcName||'');
+      } else {
+        alert('문의 시스템을 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
+      }
+    };
+  });
+
+  function renderList(title, items) {
+    var h = '<div class="tv-section"><h3>'+title+'</h3><ul>';
+    (Array.isArray(items)?items:[items]).forEach(function(i){ h += '<li>'+esc(i)+'</li>'; });
+    return h + '</ul></div>';
+  }
+  function esc(s){if(!s)return'';var d=document.createElement('div');d.textContent=s;return d.innerHTML}
+})();
+</script>
