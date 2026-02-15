@@ -256,7 +256,7 @@ function loadProducts() {
     '<button class="action-btn btn-approve" style="padding:10px 20px;font-size:14px" onclick="showAddProduct()">➕ 수동 추가</button>' +
     '</div><div id="productList"><p>로딩 중...</p></div>';
 
-  db.collection('parsed_tours').orderBy('createdAt','desc').get().then(function(snap) {
+  db.collection('parsed_tours').get().then(function(snap) {
     var list = document.getElementById('productList');
     if (!list) return;
     var docs = [];
@@ -264,14 +264,24 @@ function loadProducts() {
       var d = doc.data(); d._id = doc.id;
       if (productFilter === 'all' || d.status === productFilter) docs.push(d);
     });
+    // 최신순 정렬 (createdAt 타입 유연하게)
+    docs.sort(function(a,b) {
+      var ta = a.createdAt ? (a.createdAt.seconds ? a.createdAt.seconds*1000 : new Date(a.createdAt).getTime()) : 0;
+      var tb = b.createdAt ? (b.createdAt.seconds ? b.createdAt.seconds*1000 : new Date(b.createdAt).getTime()) : 0;
+      return tb - ta;
+    });
     if (docs.length === 0) { list.innerHTML = '<div class="admin-empty"><p>상품이 없습니다.</p></div>'; return; }
     var statusMap = {pending:'⏳ 대기',approved:'✅ 승인',rejected:'❌ 거절'};
     var html = '<table class="member-table"><thead><tr><th>상품명</th><th>목적지</th><th>기간</th><th>가격</th><th>DMC</th><th>상태</th><th>등록일</th><th>관리</th></tr></thead><tbody>';
     docs.forEach(function(d) {
+      var name = d.title || d.tourName || '-';
+      var dest = (d.countryName ? d.countryName + ' ' : '') + (d.city || d.destination || '');
+      var price = d.priceFrom ? '$' + d.priceFrom : (d.price || '-');
+      var dmc = d.operatorName || d.submitterName || d.dmcName || '-';
       var date = d.createdAt ? new Date(d.createdAt.seconds ? d.createdAt.seconds*1000 : d.createdAt).toLocaleDateString('ko-KR') : '-';
       html += '<tr style="cursor:pointer" onclick="openProductDetail(\'' + d._id + '\')">' +
-        '<td>' + esc(d.tourName) + '</td><td>' + esc(d.destination) + '</td><td>' + esc(d.duration) + '</td>' +
-        '<td>' + esc(d.price) + '</td><td>' + esc(d.dmcName||'') + '</td>' +
+        '<td>' + esc(name) + '</td><td>' + esc(dest) + '</td><td>' + esc(d.duration||'-') + '</td>' +
+        '<td>' + esc(price) + '</td><td>' + esc(dmc) + '</td>' +
         '<td>' + (statusMap[d.status]||d.status) + '</td><td>' + date + '</td>' +
         '<td><div onclick="event.stopPropagation()">';
       if (d.status !== 'approved') html += '<button class="action-btn btn-approve" onclick="quickProductAction(\'' + d._id + '\',\'approved\')">승인</button>';
@@ -295,27 +305,37 @@ function openProductDetail(id) {
     if (!doc.exists) { panel.innerHTML = '<p>상품을 찾을 수 없습니다.</p>'; return; }
     var d = doc.data();
     var fields = [
-      {key:'tourName',label:'상품명',type:'input'},
-      {key:'destination',label:'목적지',type:'input'},
+      {key:'title',label:'상품명',type:'input'},
+      {key:'countryName',label:'국가',type:'input'},
+      {key:'city',label:'도시',type:'input'},
+      {key:'continent',label:'대륙 (asia/europe/americas/oceania/africa/middle-east)',type:'input'},
+      {key:'category',label:'카테고리',type:'input'},
       {key:'duration',label:'기간',type:'input'},
-      {key:'price',label:'가격',type:'input'},
-      {key:'dmcName',label:'DMC',type:'input'},
-      {key:'imageUrl',label:'이미지 URL',type:'input'},
-      {key:'highlights',label:'하이라이트',type:'textarea'},
-      {key:'itinerary',label:'일정 (Itinerary)',type:'textarea'},
-      {key:'includes',label:'포함 사항',type:'textarea'},
-      {key:'excludes',label:'불포함 사항',type:'textarea'},
-      {key:'description',label:'설명',type:'textarea'}
+      {key:'priceFrom',label:'최저가 (USD)',type:'input'},
+      {key:'operatorName',label:'DMC 운영사',type:'input'},
+      {key:'image',label:'이미지 (이모지 또는 URL)',type:'input'},
+      {key:'groupSize',label:'최대 인원',type:'input'},
+      {key:'description',label:'설명',type:'textarea'},
+      {key:'highlights',label:'하이라이트 (줄바꿈 구분)',type:'textarea'},
+      {key:'itinerary',label:'일정 (줄바꿈 구분)',type:'textarea'},
+      {key:'included',label:'포함 사항 (줄바꿈 구분)',type:'textarea'},
+      {key:'excluded',label:'불포함 사항 (줄바꿈 구분)',type:'textarea'},
+      {key:'sourceUrl',label:'원본 URL',type:'input'}
     ];
     var statusMap = {pending:'⏳ 검토 대기',approved:'✅ 승인됨',rejected:'❌ 거절'};
     var html = '<button class="btn-back" onclick="loadProducts()">← 목록으로</button>';
-    html += '<div class="inq-detail"><h2>' + esc(d.tourName) + '</h2>';
+    html += '<div class="inq-detail"><h2>' + esc(d.title || d.tourName || '(제목 없음)') + '</h2>';
     html += '<div class="inq-meta">상태: ' + (statusMap[d.status]||d.status) + '</div>';
     html += '<div style="display:grid;gap:16px;margin-top:16px">';
     fields.forEach(function(f) {
       var val = d[f.key];
-      if (Array.isArray(val)) val = val.join('\n');
-      val = val || '';
+      if (Array.isArray(val)) {
+        val = val.map(function(item) {
+          if (typeof item === 'object' && item.day) return 'Day ' + item.day + ': ' + (item.title||'') + ' - ' + (item.description||'');
+          return typeof item === 'string' ? item : JSON.stringify(item);
+        }).join('\n');
+      }
+      val = val != null ? String(val) : '';
       html += '<div><label style="font-size:13px;font-weight:700;color:var(--gray-700);display:block;margin-bottom:4px">' + f.label + '</label>';
       if (f.type === 'textarea') {
         html += '<textarea id="pf_'+f.key+'" style="width:100%;min-height:80px;padding:10px;border:1px solid var(--gray-300);border-radius:8px;font-size:14px;font-family:inherit;resize:vertical">' + esc(val) + '</textarea>';
@@ -335,14 +355,16 @@ function openProductDetail(id) {
 }
 
 function saveProduct(id, newStatus) {
-  var fields = ['tourName','destination','duration','price','dmcName','imageUrl','highlights','itinerary','includes','excludes','description'];
+  var fields = ['title','countryName','city','continent','category','duration','priceFrom','operatorName','image','groupSize','description','highlights','itinerary','included','excluded','sourceUrl'];
   var data = {updatedAt: firebase.firestore.FieldValue.serverTimestamp()};
   fields.forEach(function(f) {
     var el = document.getElementById('pf_'+f);
     if (!el) return;
     var v = el.value;
-    if (['highlights','itinerary','includes','excludes'].indexOf(f) >= 0) {
+    if (['highlights','itinerary','included','excluded'].indexOf(f) >= 0) {
       data[f] = v.split('\n').filter(function(l){return l.trim();});
+    } else if (f === 'priceFrom' || f === 'groupSize') {
+      data[f] = parseInt(v) || 0;
     } else {
       data[f] = v;
     }
@@ -357,16 +379,20 @@ function saveProduct(id, newStatus) {
 function showAddProduct() {
   var panel = document.getElementById('panel-products');
   var fields = [
-    {key:'tourName',label:'상품명',type:'input'},
-    {key:'destination',label:'목적지',type:'input'},
+    {key:'title',label:'상품명',type:'input'},
+    {key:'countryName',label:'국가',type:'input'},
+    {key:'city',label:'도시',type:'input'},
+    {key:'continent',label:'대륙 (asia/europe/americas/oceania/africa/middle-east)',type:'input'},
+    {key:'category',label:'카테고리',type:'input'},
     {key:'duration',label:'기간',type:'input'},
-    {key:'price',label:'가격',type:'input'},
-    {key:'dmcName',label:'DMC',type:'input'},
-    {key:'imageUrl',label:'이미지 URL',type:'input'},
+    {key:'priceFrom',label:'최저가 (USD)',type:'input'},
+    {key:'operatorName',label:'DMC 운영사',type:'input'},
+    {key:'image',label:'이미지 (이모지 또는 URL)',type:'input'},
+    {key:'description',label:'설명',type:'textarea'},
     {key:'highlights',label:'하이라이트 (줄바꿈 구분)',type:'textarea'},
     {key:'itinerary',label:'일정 (줄바꿈 구분)',type:'textarea'},
-    {key:'includes',label:'포함 사항 (줄바꿈 구분)',type:'textarea'},
-    {key:'excludes',label:'불포함 사항 (줄바꿈 구분)',type:'textarea'},
+    {key:'included',label:'포함 사항 (줄바꿈 구분)',type:'textarea'},
+    {key:'excluded',label:'불포함 사항 (줄바꿈 구분)',type:'textarea'},
     {key:'description',label:'설명',type:'textarea'}
   ];
   var html = '<button class="btn-back" onclick="loadProducts()">← 목록으로</button>';
@@ -388,19 +414,21 @@ function showAddProduct() {
 }
 
 function submitNewProduct() {
-  var fields = ['tourName','destination','duration','price','dmcName','imageUrl','highlights','itinerary','includes','excludes','description'];
+  var fields = ['title','countryName','city','continent','category','duration','priceFrom','operatorName','image','description','highlights','itinerary','included','excluded'];
   var data = {status:'pending', createdAt:firebase.firestore.FieldValue.serverTimestamp(), updatedAt:firebase.firestore.FieldValue.serverTimestamp()};
   fields.forEach(function(f) {
     var el = document.getElementById('pf_'+f);
     if (!el) return;
     var v = el.value;
-    if (['highlights','itinerary','includes','excludes'].indexOf(f) >= 0) {
+    if (['highlights','itinerary','included','excluded'].indexOf(f) >= 0) {
       data[f] = v.split('\n').filter(function(l){return l.trim();});
+    } else if (f === 'priceFrom') {
+      data[f] = parseInt(v) || 0;
     } else {
       data[f] = v;
     }
   });
-  if (!data.tourName) { alert('상품명을 입력하세요.'); return; }
+  if (!data.title) { alert('상품명을 입력하세요.'); return; }
   db.collection('parsed_tours').add(data).then(function() {
     alert('상품이 추가되었습니다.');
     loadProducts();
