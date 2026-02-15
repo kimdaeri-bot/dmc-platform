@@ -104,23 +104,24 @@ function loadInquiries() {
   var content = document.getElementById('dashContent');
   content.innerHTML = '<h1 class="dash-title">💬 문의 관리</h1><div id="inqList"><p>로딩 중...</p></div>';
 
-  var query;
-  if (u.profile.role === 'dmc' || u.profile.role === 'admin') {
-    // DMC와 admin은 전체 문의 조회
-    query = db.collection('inquiries').orderBy('createdAt', 'desc');
-  } else {
-    query = db.collection('inquiries').where('agencyUid', '==', u.uid).orderBy('createdAt', 'desc');
-  }
-
-  query.get().then(function(snap) {
+  // 전체 가져온 후 클라이언트 필터링 (복합 인덱스 불필요)
+  db.collection('inquiries').orderBy('createdAt', 'desc').get().then(function(snap) {
     var list = document.getElementById('inqList');
-    if (snap.empty) {
+    var docs = [];
+    snap.forEach(function(doc) {
+      var d = doc.data();
+      // agency는 본인 문의만
+      if (u.profile.role !== 'dmc' && u.profile.role !== 'admin' && d.agencyUid !== u.uid) return;
+      docs.push({id: doc.id, data: d});
+    });
+    if (docs.length === 0) {
       list.innerHTML = '<div class="dash-empty"><div class="icon">📭</div><p>아직 문의가 없습니다.</p></div>';
       return;
     }
     var html = '';
-    snap.forEach(function(doc) {
-      var d = doc.data();
+    docs.forEach(function(item) {
+      var doc = {id: item.id};
+      var d = item.data;
       var date = d.createdAt ? new Date(d.createdAt.seconds * 1000).toLocaleDateString('ko-KR') : '';
       var extra = (u.profile.role === 'dmc' || u.profile.role === 'admin') ? '<span style="font-size:12px;color:var(--navy);font-weight:600;margin-left:8px;">📩 ' + esc(d.agencyName) + '</span>' : '';
       html += '<div class="inq-card" onclick="viewInquiry(\'' + doc.id + '\')">' +
