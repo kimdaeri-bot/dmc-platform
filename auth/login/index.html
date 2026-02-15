@@ -86,7 +86,7 @@ function handleLogin(e) {
       if (profile.role === 'admin') {
         location.href = baseUrl + '/admin/';
       } else {
-        location.href = redirect || baseUrl + '/dashboard/';
+        location.href = redirect || baseUrl + '/';
       }
     })
     .catch(function(err) {

@@ -80,8 +80,9 @@ function loadInquiries() {
   content.innerHTML = '<h1 class="dash-title">💬 문의 관리</h1><div id="inqList"><p>로딩 중...</p></div>';
 
   var query;
-  if (u.profile.role === 'dmc') {
-    query = db.collection('inquiries').where('dmcId', '==', u.uid).orderBy('createdAt', 'desc');
+  if (u.profile.role === 'dmc' || u.profile.role === 'admin') {
+    // DMC와 admin은 전체 문의 조회
+    query = db.collection('inquiries').orderBy('createdAt', 'desc');
   } else {
     query = db.collection('inquiries').where('agencyUid', '==', u.uid).orderBy('createdAt', 'desc');
   }
@@ -96,11 +97,12 @@ function loadInquiries() {
     snap.forEach(function(doc) {
       var d = doc.data();
       var date = d.createdAt ? new Date(d.createdAt.seconds * 1000).toLocaleDateString('ko-KR') : '';
+      var extra = (u.profile.role === 'dmc' || u.profile.role === 'admin') ? '<span style="font-size:12px;color:var(--navy);font-weight:600;margin-left:8px;">📩 ' + esc(d.agencyName) + '</span>' : '';
       html += '<div class="inq-card" onclick="viewInquiry(\'' + doc.id + '\')">' +
         '<h3>' + esc(d.tourTitle || d.subject) + '</h3>' +
         '<p>' + esc(d.subject) + '</p>' +
         '<span class="inq-badge ' + d.status + '">' + statusLabel(d.status) + '</span> ' +
-        '<span style="font-size:12px;color:var(--gray-500)">' + date + '</span></div>';
+        '<span style="font-size:12px;color:var(--gray-500)">' + date + '</span>' + extra + '</div>';
     });
     list.innerHTML = html;
   });
@@ -116,6 +118,8 @@ function viewInquiry(id) {
     var html = '<button class="back-btn" onclick="loadInquiries()">← 목록으로</button>' +
       '<div class="inq-detail"><h2>' + esc(d.tourTitle) + '</h2>' +
       '<div class="inq-meta"><strong>제목:</strong> ' + esc(d.subject) + '<br>' +
+      '<strong>문의자:</strong> ' + esc(d.agencyName) + ' (' + esc(d.agencyEmail) + ')<br>' +
+      (d.dmcName ? '<strong>DMC:</strong> ' + esc(d.dmcName) + '<br>' : '') +
       '<strong>상태:</strong> <span class="inq-badge ' + d.status + '">' + statusLabel(d.status) + '</span><br>' +
       '<strong>작성일:</strong> ' + date + '</div>' +
       '<p>' + esc(d.message) + '</p>' +
