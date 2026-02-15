@@ -219,22 +219,22 @@ function loadProducts() {
     '</div>' : '') +
     '<div id="reqList"><p>로딩 중...</p></div>';
 
-  var query;
-  if (u.profile.role === 'admin') {
-    query = db.collection('url_requests').orderBy('createdAt', 'desc').limit(50);
-  } else {
-    query = db.collection('url_requests').where('submitterUid', '==', u.uid).orderBy('createdAt', 'desc').limit(50);
-  }
-  
-  query.get().then(function(snap) {
+  db.collection('url_requests').orderBy('createdAt', 'desc').limit(50).get().then(function(snap) {
     var list = document.getElementById('reqList');
-    if (snap.empty) {
+    var docs = [];
+    snap.forEach(function(doc) {
+      var d = doc.data();
+      if (u.profile.role !== 'admin' && d.submitterUid !== u.uid) return;
+      docs.push({id: doc.id, data: d});
+    });
+    if (docs.length === 0) {
       list.innerHTML = '<div class="dash-empty"><div class="icon">📦</div><p>등록 요청이 없습니다. URL을 입력해 첫 상품을 등록해보세요!</p></div>';
       return;
     }
     var html = '';
-    snap.forEach(function(doc) {
-      var d = doc.data();
+    docs.forEach(function(item) {
+      var doc = {id: item.id};
+      var d = item.data;
       var date = d.createdAt ? new Date(d.createdAt.seconds * 1000).toLocaleString('ko-KR') : '';
       var preview = '';
       if (d.status === 'done' && d.parsedData) {
