@@ -219,7 +219,15 @@ function loadProducts() {
     '</div>' : '') +
     '<div id="reqList"><p>로딩 중...</p></div>';
 
-  db.collection('url_requests').orderBy('createdAt', 'desc').limit(50).get().then(function(snap) {
+  // parsed_tours에서 본인 투어 상태 조회
+  var tourStatusMap = {};
+  db.collection('parsed_tours').get().then(function(tourSnap) {
+    tourSnap.forEach(function(td) {
+      var t = td.data();
+      if (t.sourceUrl) tourStatusMap[t.sourceUrl] = {status: t.status, id: td.id};
+    });
+    return db.collection('url_requests').orderBy('createdAt', 'desc').limit(50).get();
+  }).then(function(snap) {
     var list = document.getElementById('reqList');
     var docs = [];
     snap.forEach(function(doc) {
@@ -249,11 +257,21 @@ function loadProducts() {
       if (d.status === 'error' && d.errorMsg) {
         preview = '<div class="parsed-preview" style="color:#c62828">❌ ' + esc(d.errorMsg) + '</div>';
       }
+      var tourStatus = '';
+      var matched = d.url ? tourStatusMap[d.url] : null;
+      if (matched) {
+        tourStatus = '<span class="req-badge ' + matched.status + '" style="margin-left:6px">' + tourStatusLabel(matched.status) + '</span>';
+      } else if (d.status === 'done') {
+        tourStatus = '<span class="req-badge pending" style="margin-left:6px">⏳ 승인대기</span>';
+      }
       html += '<div class="req-card">' +
-        '<h4>🔗 ' + esc(d.url) + '</h4>' +
-        '<div class="req-meta">' +
-          '<span class="req-badge ' + d.status + '">' + reqStatusLabel(d.status) + '</span> · ' + date +
-        '</div>' + preview + '</div>';
+        '<div style="display:flex;justify-content:space-between;align-items:start">' +
+          '<div style="flex:1"><h4>🔗 ' + esc(d.url) + '</h4>' +
+          '<div class="req-meta">' +
+            '<span class="req-badge ' + d.status + '">' + reqStatusLabel(d.status) + '</span>' + tourStatus + ' · ' + date +
+          '</div>' + preview + '</div>' +
+          '<button onclick="event.stopPropagation();deleteRequest(\'' + doc.id + '\')" style="background:none;border:none;cursor:pointer;font-size:18px;color:var(--gray-500);padding:4px 8px" title="삭제">🗑️</button>' +
+        '</div></div>';
     });
     list.innerHTML = html;
   }).catch(function(err) {
@@ -291,7 +309,20 @@ function submitUrl() {
 }
 
 function reqStatusLabel(s) {
-  return {pending:'⏳ 대기',processing:'🔄 분석중',done:'✅ 완료',error:'❌ 실패'}[s] || s;
+  return {pending:'⏳ 대기',processing:'🔄 분석중',done:'✅ 파싱완료',error:'❌ 실패'}[s] || s;
+}
+
+function tourStatusLabel(s) {
+  return {pending:'⏳ 승인대기',approved:'✅ 승인됨',rejected:'❌ 거절됨'}[s] || s;
+}
+
+function deleteRequest(reqId) {
+  if (!confirm('이 등록 요청을 삭제하시겠습니까?')) return;
+  db.collection('url_requests').doc(reqId).delete().then(function() {
+    loadProducts();
+  }).catch(function(err) {
+    alert('삭제 실패: ' + err.message);
+  });
 }
 
 function statusLabel(s){return{open:'접수',
