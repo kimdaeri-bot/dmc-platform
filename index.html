@@ -25,9 +25,36 @@ title: "DMC 투어링크 - 전 세계 현지투어 메타 플랫폼"
       </select>
     </div>
     <div class="hero-search-divider"></div>
-    <div class="hero-search-item">
+    <div class="hero-search-item" style="position:relative;">
       <span class="hero-search-icon">📅</span>
-      <input type="text" id="hs-date" readonly placeholder="날짜 선택" onclick="this.type='date';this.showPicker?this.showPicker():this.focus();" onchange="this.type='text';this.value=this.value?new Date(this.value+'T00:00').toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric'}):'';this.setAttribute('data-val',this.value);" style="border:none;background:transparent;font-family:inherit;font-size:15px;font-weight:500;color:var(--gray-900);padding:14px 4px;width:100%;cursor:pointer;outline:none;">
+      <input type="text" id="hs-date" readonly placeholder="출발 시기" data-month="" data-date="" onclick="toggleDatePicker()" style="border:none;background:transparent;font-family:inherit;font-size:15px;font-weight:500;color:var(--gray-900);padding:14px 4px;width:100%;cursor:pointer;outline:none;">
+      <!-- 2-Step Date Picker -->
+      <div class="hero-date-picker" id="heroDatePicker">
+        <!-- Step 1: Month Selection -->
+        <div class="hdp-step" id="hdpStep1">
+          <div class="hdp-header">
+            <button class="hdp-nav" id="hdpPrevYear">◀</button>
+            <span class="hdp-year" id="hdpYear"></span>
+            <button class="hdp-nav" id="hdpNextYear">▶</button>
+          </div>
+          <div class="hdp-months" id="hdpMonths"></div>
+          <div class="hdp-actions">
+            <button class="hdp-btn-apply" id="hdpApplyMonth">이 월로 검색</button>
+          </div>
+        </div>
+        <!-- Step 2: Day Selection -->
+        <div class="hdp-step hidden" id="hdpStep2">
+          <div class="hdp-header">
+            <button class="hdp-nav" id="hdpBackMonth">◀ 월 선택</button>
+            <span class="hdp-month-label" id="hdpMonthLabel"></span>
+          </div>
+          <div class="hdp-weekdays"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div>
+          <div class="hdp-days" id="hdpDays"></div>
+          <div class="hdp-actions">
+            <button class="hdp-btn-secondary" id="hdpClearDate">날짜 초기화</button>
+          </div>
+        </div>
+      </div>
     </div>
     <div class="hero-search-divider"></div>
     <div class="hero-search-item">
@@ -145,3 +172,120 @@ title: "DMC 투어링크 - 전 세계 현지투어 메타 플랫폼"
 </div>
 
 <script>var BASE_URL = '{{ site.baseurl }}';</script>
+<script>
+(function(){
+  var picker = document.getElementById('heroDatePicker');
+  var input = document.getElementById('hs-date');
+  var step1 = document.getElementById('hdpStep1');
+  var step2 = document.getElementById('hdpStep2');
+  var now = new Date();
+  var selYear = now.getFullYear();
+  var selMonth = -1; // 0-based
+  var selDay = -1;
+  var monthNames = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+
+  window.toggleDatePicker = function(){
+    picker.classList.toggle('open');
+    if(picker.classList.contains('open')){ showStep1(); }
+  };
+  // Close on outside click
+  document.addEventListener('click', function(e){
+    if(!picker.contains(e.target) && e.target !== input){
+      picker.classList.remove('open');
+    }
+  });
+
+  function showStep1(){
+    step1.classList.remove('hidden'); step2.classList.add('hidden');
+    renderMonths();
+  }
+  function showStep2(){
+    step1.classList.add('hidden'); step2.classList.remove('hidden');
+    renderDays();
+  }
+
+  function renderMonths(){
+    document.getElementById('hdpYear').textContent = selYear + '년';
+    var html = '';
+    for(var m=0;m<12;m++){
+      var isPast = (selYear < now.getFullYear()) || (selYear === now.getFullYear() && m < now.getMonth());
+      var isSel = (m === selMonth);
+      html += '<button class="hdp-month-btn'+(isPast?' past':'')+(isSel?' selected':'')+'" data-m="'+m+'">'+monthNames[m]+'</button>';
+    }
+    document.getElementById('hdpMonths').innerHTML = html;
+    // Bind clicks
+    document.querySelectorAll('.hdp-month-btn:not(.past)').forEach(function(btn){
+      btn.onclick = function(){ 
+        selMonth = parseInt(this.dataset.m);
+        selDay = -1;
+        renderMonths();
+      };
+    });
+  }
+
+  document.getElementById('hdpPrevYear').onclick = function(){ selYear--; renderMonths(); };
+  document.getElementById('hdpNextYear').onclick = function(){ selYear++; renderMonths(); };
+
+  // "이 월로 검색" — apply month only
+  document.getElementById('hdpApplyMonth').onclick = function(){
+    if(selMonth < 0) return;
+    input.value = selYear + '년 ' + monthNames[selMonth];
+    input.dataset.month = selYear + '-' + String(selMonth+1).padStart(2,'0');
+    input.dataset.date = '';
+    picker.classList.remove('open');
+  };
+
+  // Click selected month again to drill into days
+  document.getElementById('hdpMonths').addEventListener('dblclick', function(e){
+    var btn = e.target.closest('.hdp-month-btn');
+    if(btn && !btn.classList.contains('past')){
+      selMonth = parseInt(btn.dataset.m);
+      showStep2();
+    }
+  });
+  // Also add "날짜까지 선택 >" link
+  var applyBtn = document.getElementById('hdpApplyMonth');
+  var drillLink = document.createElement('button');
+  drillLink.className = 'hdp-btn-secondary';
+  drillLink.textContent = '날짜 선택 →';
+  drillLink.onclick = function(){ if(selMonth>=0) showStep2(); };
+  applyBtn.parentNode.insertBefore(drillLink, applyBtn.nextSibling);
+
+  // Step 2: Day grid
+  function renderDays(){
+    document.getElementById('hdpMonthLabel').textContent = selYear+'년 '+monthNames[selMonth];
+    var first = new Date(selYear, selMonth, 1);
+    var last = new Date(selYear, selMonth+1, 0);
+    var startDay = first.getDay();
+    var totalDays = last.getDate();
+    var todayStr = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+    var html = '';
+    for(var i=0;i<startDay;i++) html += '<span class="hdp-day empty"></span>';
+    for(var d=1;d<=totalDays;d++){
+      var dateStr = selYear+'-'+String(selMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+      var isPast = new Date(selYear,selMonth,d) < new Date(now.getFullYear(),now.getMonth(),now.getDate());
+      var isToday = dateStr === todayStr;
+      var isSel = d === selDay;
+      html += '<span class="hdp-day'+(isPast?' past':'')+(isToday?' today':'')+(isSel?' selected':'')+'" data-d="'+d+'">'+d+'</span>';
+    }
+    document.getElementById('hdpDays').innerHTML = html;
+    document.querySelectorAll('.hdp-day:not(.empty):not(.past)').forEach(function(el){
+      el.onclick = function(){
+        selDay = parseInt(this.dataset.d);
+        input.value = selYear+'년 '+monthNames[selMonth]+' '+selDay+'일';
+        input.dataset.month = selYear+'-'+String(selMonth+1).padStart(2,'0');
+        input.dataset.date = selYear+'-'+String(selMonth+1).padStart(2,'0')+'-'+String(selDay).padStart(2,'0');
+        picker.classList.remove('open');
+      };
+    });
+  }
+
+  document.getElementById('hdpBackMonth').onclick = function(){ showStep1(); };
+  document.getElementById('hdpClearDate').onclick = function(){
+    selDay = -1;
+    input.value = selYear+'년 '+monthNames[selMonth];
+    input.dataset.date = '';
+    renderDays();
+  };
+})();
+</script>

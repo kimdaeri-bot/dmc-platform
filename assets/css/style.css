@@ -84,6 +84,36 @@ ul { list-style: none; }
 .hero-search-btn { background: var(--orange); color: var(--white); border: none; border-radius: 50px; padding: 14px 32px; font-size: 16px; font-weight: 700; font-family: inherit; cursor: pointer; transition: background .2s; flex-shrink: 0; display: flex; align-items: center; gap: 6px; }
 .hero-search-btn:hover { background: var(--orange-hover); }
 
+/* Hero 2-Step Date Picker */
+.hero-date-picker { display:none; position:absolute; top:calc(100% + 12px); left:50%; transform:translateX(-50%); background:var(--white); border-radius:16px; box-shadow:0 12px 40px rgba(0,0,0,.2); padding:20px; z-index:100; min-width:300px; }
+.hero-date-picker.open { display:block; }
+.hdp-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+.hdp-year, .hdp-month-label { font-size:18px; font-weight:800; color:var(--navy); }
+.hdp-nav { background:none; border:1px solid var(--gray-300); border-radius:8px; padding:6px 12px; cursor:pointer; font-size:13px; color:var(--gray-700); transition:all .2s; }
+.hdp-nav:hover { border-color:var(--navy); color:var(--navy); }
+.hdp-months { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:16px; }
+.hdp-month-btn { padding:12px 8px; border:2px solid var(--gray-200); border-radius:10px; background:var(--white); cursor:pointer; font-family:inherit; font-size:14px; font-weight:600; color:var(--gray-700); transition:all .15s; }
+.hdp-month-btn:hover { border-color:var(--navy); color:var(--navy); background:var(--gray-50); }
+.hdp-month-btn.selected { background:var(--navy); color:var(--white); border-color:var(--navy); }
+.hdp-month-btn.past { opacity:.35; pointer-events:none; }
+.hdp-actions { display:flex; gap:8px; }
+.hdp-btn-apply { flex:1; padding:10px; border:none; border-radius:10px; background:var(--orange); color:var(--white); font-family:inherit; font-size:14px; font-weight:700; cursor:pointer; transition:background .2s; }
+.hdp-btn-apply:hover { background:var(--orange-hover); }
+.hdp-btn-secondary { flex:1; padding:8px; border:1px solid var(--gray-300); border-radius:10px; background:var(--white); color:var(--gray-700); font-family:inherit; font-size:13px; cursor:pointer; }
+.hdp-btn-secondary:hover { border-color:var(--navy); color:var(--navy); }
+.hdp-weekdays { display:grid; grid-template-columns:repeat(7,1fr); text-align:center; font-size:11px; font-weight:700; color:var(--gray-500); margin-bottom:6px; }
+.hdp-days { display:grid; grid-template-columns:repeat(7,1fr); gap:3px; text-align:center; margin-bottom:12px; }
+.hdp-day { width:36px; height:36px; line-height:36px; margin:0 auto; border-radius:50%; font-size:13px; cursor:pointer; transition:all .15s; color:var(--gray-700); }
+.hdp-day:hover { background:var(--gray-100); }
+.hdp-day.selected { background:var(--orange); color:var(--white); font-weight:700; }
+.hdp-day.today { border:2px solid var(--navy); font-weight:700; }
+.hdp-day.empty { cursor:default; }
+.hdp-day.past { opacity:.3; pointer-events:none; }
+.hdp-step.hidden { display:none; }
+@media (max-width:768px) {
+  .hero-date-picker { left:0; transform:none; right:0; min-width:auto; border-radius:12px; }
+}
+
 /* Stats Bar */
 .stats-bar { background: var(--gray-50); border-bottom: 1px solid var(--gray-200); padding: 14px 0; }
 .stats-bar-inner { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; color: var(--gray-700); flex-wrap: wrap; }
