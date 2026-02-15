@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://kimdaeri-bot.github.io/dmc-platform/sitemap.xml

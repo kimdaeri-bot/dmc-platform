@@ -1,0 +1,122 @@
+---
+layout: default
+title: "투어 검색 - DMC 투어링크"
+---
+
+<div class="page-header">
+  <div class="container"><h1>🔍 투어 검색</h1></div>
+</div>
+
+<!-- Filter Bar -->
+<div class="filter-bar container" style="margin-top:24px;">
+  <div class="filter-group">
+    <label>대륙</label>
+    <select id="f-continent" onchange="filterTours()">
+      <option value="">전체</option>
+      <option value="asia">아시아</option>
+      <option value="europe">유럽</option>
+      <option value="americas">아메리카</option>
+      <option value="oceania">오세아니아</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <label>국가</label>
+    <select id="f-country" onchange="filterTours()">
+      <option value="">전체</option>
+      <option value="JP">일본</option>
+      <option value="ID">인도네시아</option>
+      <option value="FR">프랑스</option>
+      <option value="GR">그리스</option>
+      <option value="US">미국</option>
+      <option value="AU">호주</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <label>카테고리</label>
+    <select id="f-category" onchange="filterTours()">
+      <option value="">전체</option>
+      <option value="시티투어">시티투어</option>
+      <option value="자연/관광">자연/관광</option>
+      <option value="문화/체험">문화/체험</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <label>기간</label>
+    <select id="f-duration" onchange="filterTours()">
+      <option value="">전체</option>
+      <option value="1">일일투어</option>
+      <option value="2-3">2~3일</option>
+      <option value="4+">4일 이상</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <label>가격대 (USD)</label>
+    <select id="f-price" onchange="filterTours()">
+      <option value="">전체</option>
+      <option value="0-150">~$150</option>
+      <option value="150-400">$150~$400</option>
+      <option value="400-9999">$400+</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <label>검색</label>
+    <input type="text" id="f-search" placeholder="투어명 검색..." oninput="filterTours()">
+  </div>
+</div>
+
+<div class="section">
+  <div class="container">
+    <div class="list-controls">
+      <span class="result-count">총 <strong id="resultCount">{{ site.data.tours | size }}</strong>개 투어</span>
+      <select class="sort-select" id="sortSelect" onchange="filterTours()">
+        <option value="featured">추천순</option>
+        <option value="price-asc">가격 낮은순</option>
+        <option value="price-desc">가격 높은순</option>
+      </select>
+    </div>
+
+    <div class="cruise-list" id="tourList">
+      {% for tour in site.data.tours %}
+      <div class="cruise-item"
+           data-continent="{{ tour.continent }}"
+           data-country="{{ tour.country }}"
+           data-category="{{ tour.category }}"
+           data-days="{{ tour.durationDays }}"
+           data-price="{{ tour.priceFrom }}"
+           data-featured="{{ tour.featured }}"
+           data-title="{{ tour.title }}">
+        <div class="cruise-item-image">
+          <div class="placeholder">{{ tour.image }}</div>
+        </div>
+        <div class="cruise-item-body">
+          <div>
+            <div class="cruise-item-meta">
+              {% for tag in tour.tags %}<span class="tag tag-{{ tag }}">{{ tag }}</span>{% endfor %}
+              {{ tour.countryName }} · {{ tour.city }}
+            </div>
+            <div class="cruise-item-title"><a href="{{ '/tour/' | append: tour.slug | append: '/' | relative_url }}">{{ tour.title }}</a></div>
+            <div class="cruise-item-ports">⏱️ {{ tour.duration }} · 👥 최대 {{ tour.groupSize }}명 · 🌐 {{ tour.languages | join: ", " }}</div>
+          </div>
+          <div class="cruise-item-footer">
+            <div class="cruise-item-row">
+              <div class="cruise-item-price">${{ tour.priceFrom }}~ <small>/1인</small></div>
+              <div class="cruise-item-actions">
+                <a href="{{ '/tour/' | append: tour.slug | append: '/' | relative_url }}" class="btn btn-secondary btn-sm">자세히보기</a>
+                {% assign op = nil %}{% for o in site.data.operators %}{% if o.id == tour.operatorId %}{% assign op = o %}{% endif %}{% endfor %}
+                <button class="btn btn-primary btn-sm" onclick="openInquiry('{{ tour.title }}','{{ tour.duration }}','{{ tour.priceFrom }}','{{ op.name | default: "" }}','{{ op.contact.email | default: "" }}')">문의하기</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="no-results hidden" id="noResults">
+      <div class="icon">🔍</div>
+      <p>검색 결과가 없습니다. 필터를 변경해보세요.</p>
+    </div>
+  </div>
+</div>
+
+<script>var BASE_URL = '{{ site.baseurl }}';</script>

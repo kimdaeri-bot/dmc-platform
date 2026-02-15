@@ -1,0 +1,130 @@
+---
+layout: default
+title: "DMC 투어링크 - 전 세계 현지투어 메타 플랫폼"
+---
+
+<!-- Hero -->
+<div class="hero">
+  <div class="hero-content container">
+    <h1>전 세계 현지투어를<br>한눈에 비교하세요</h1>
+    <p>아시아, 유럽, 아메리카, 오세아니아 — 검증된 DMC 파트너의 현지투어를 만나보세요</p>
+  </div>
+</div>
+
+<!-- Search Bar -->
+<div class="filter-bar container">
+  <div class="filter-group">
+    <label>대륙</label>
+    <select id="hf-continent">
+      <option value="">전체</option>
+      <option value="asia">아시아</option>
+      <option value="europe">유럽</option>
+      <option value="americas">아메리카</option>
+      <option value="oceania">오세아니아</option>
+      <option value="africa">아프리카</option>
+      <option value="middle-east">중동</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <label>카테고리</label>
+    <select id="hf-category">
+      <option value="">전체</option>
+      <option value="시티투어">시티투어</option>
+      <option value="자연/관광">자연/관광</option>
+      <option value="문화/체험">문화/체험</option>
+    </select>
+  </div>
+  <button class="btn btn-primary" id="homeSearchBtn">🔍 검색</button>
+</div>
+
+<!-- Continent Slider -->
+<div class="section">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="section-title">🌍 대륙별 투어</h2>
+      <p class="section-subtitle">원하는 대륙을 선택하세요</p>
+    </div>
+    <div class="dest-slider-wrap">
+      <button class="dest-slider-btn" onclick="destSlide(-1)">◀</button>
+      <div class="dest-slider" id="destSlider">
+        <a href="{{ '/continent/asia/' | relative_url }}" class="dest-chip"><span class="dest-icon">🏯</span> 아시아</a>
+        <a href="{{ '/continent/europe/' | relative_url }}" class="dest-chip"><span class="dest-icon">🏰</span> 유럽</a>
+        <a href="{{ '/continent/americas/' | relative_url }}" class="dest-chip"><span class="dest-icon">🗽</span> 아메리카</a>
+        <a href="{{ '/continent/oceania/' | relative_url }}" class="dest-chip"><span class="dest-icon">🦘</span> 오세아니아</a>
+        <a href="{{ '/continent/africa/' | relative_url }}" class="dest-chip"><span class="dest-icon">🦁</span> 아프리카</a>
+        <a href="{{ '/continent/middle-east/' | relative_url }}" class="dest-chip"><span class="dest-icon">🕌</span> 중동</a>
+      </div>
+      <button class="dest-slider-btn" onclick="destSlide(1)">▶</button>
+    </div>
+  </div>
+</div>
+
+<!-- Featured Tours -->
+<div class="section section-alt">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="section-title">🔥 인기 투어</h2>
+      <p class="section-subtitle">여행자들이 가장 많이 찾는 투어</p>
+    </div>
+    <div class="cruise-grid">
+      {% for tour in site.data.tours %}
+        {% if tour.featured %}
+        <a href="{{ '/tour/' | append: tour.slug | append: '/' | relative_url }}" class="cruise-card-link">
+          <div class="cruise-card">
+            <div class="cruise-card-image">
+              <div class="placeholder">{{ tour.image }}</div>
+              <div class="cruise-card-tags">
+                {% for tag in tour.tags %}<span class="tag tag-{{ tag }}">{{ tag }}</span>{% endfor %}
+              </div>
+            </div>
+            <div class="cruise-card-body">
+              <div class="cruise-card-meta">{{ tour.countryName }} · {{ tour.city }}</div>
+              <div class="cruise-card-title">{{ tour.title }}</div>
+              <div class="cruise-card-ports">⏱️ {{ tour.duration }} · 👥 최대 {{ tour.groupSize }}명</div>
+              <div class="cruise-card-footer">
+                <div class="cruise-card-price">${{ tour.priceFrom }}~ <small>/1인</small></div>
+                <span class="btn btn-sm btn-secondary">자세히보기</span>
+              </div>
+            </div>
+          </div>
+        </a>
+        {% endif %}
+      {% endfor %}
+    </div>
+    <div class="text-center mt-40">
+      <a href="{{ '/tours/' | relative_url }}" class="btn btn-primary btn-lg">전체 투어 보기 →</a>
+    </div>
+  </div>
+</div>
+
+<!-- Partner Logo Slider -->
+<div class="section">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="section-title">🤝 DMC 파트너</h2>
+      <p class="section-subtitle">검증된 현지 운영사와 함께합니다</p>
+    </div>
+    <div class="logo-slider-wrap">
+      <div class="logo-slider-track" id="partnerLogoTrack">
+        {% for op in site.data.operators %}
+        <div class="partner-logo"><span>{{ op.logo }}</span> {{ op.name }}</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- B2B CTA -->
+<div class="cta-section">
+  <div class="container">
+    <h2>DMC 파트너로 입점하세요</h2>
+    <p>전 세계 여행사에 귀사의 현지투어를 소개하세요. 간편한 입점, 강력한 노출.</p>
+    <div class="cta-buttons">
+      <a href="{{ '/partners/' | relative_url }}" class="btn btn-primary btn-lg">🏢 입점 안내</a>
+      <a href="{{ site.brand.kakao }}" target="_blank" class="btn btn-kakao btn-lg">💬 카카오톡 문의</a>
+      <a href="tel:{{ site.brand.phone }}" class="btn btn-outline btn-lg" style="border-color:white;color:white;">☎️ {{ site.brand.phone }}</a>
+    </div>
+  </div>
+</div>
+
+<script>var BASE_URL = '{{ site.baseurl }}';</script>

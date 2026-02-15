@@ -1,0 +1,38 @@
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-section">
+        <h3>DMC <span style="color:var(--orange)">투어링크</span></h3>
+        <p>전 세계 현지투어를 한눈에,<br>DMC 투어링크와 함께하세요.</p>
+        <p style="margin-top:12px;">
+          ☎️ {{ site.brand.phone }}<br>
+          ✉️ {{ site.brand.email }}
+        </p>
+      </div>
+      <div class="footer-section">
+        <h3>대륙별 투어</h3>
+        <a href="{{ '/continent/asia/' | relative_url }}">아시아</a>
+        <a href="{{ '/continent/europe/' | relative_url }}">유럽</a>
+        <a href="{{ '/continent/americas/' | relative_url }}">아메리카</a>
+        <a href="{{ '/continent/oceania/' | relative_url }}">오세아니아</a>
+        <a href="{{ '/continent/africa/' | relative_url }}">아프리카</a>
+        <a href="{{ '/continent/middle-east/' | relative_url }}">중동</a>
+      </div>
+      <div class="footer-section">
+        <h3>카테고리</h3>
+        <a href="{{ '/tours/' | relative_url }}">전체 투어</a>
+        <a href="{{ '/tours/?category=시티투어' | relative_url }}">시티투어</a>
+        <a href="{{ '/tours/?category=자연' | relative_url }}">자연/관광</a>
+        <a href="{{ '/tours/?category=문화' | relative_url }}">문화/체험</a>
+      </div>
+      <div class="footer-section">
+        <h3>파트너</h3>
+        <a href="{{ '/partners/' | relative_url }}">DMC 입점 안내</a>
+        <a href="{{ site.brand.kakao }}" target="_blank">카카오톡 상담</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; {{ 'now' | date: '%Y' }} DMC 투어링크. All rights reserved.</p>
+    </div>
+  </div>
+</footer>

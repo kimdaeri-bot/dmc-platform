@@ -1,0 +1,15 @@
+<header class="site-header">
+  <div class="header-inner">
+    <a href="{{ '/' | relative_url }}" class="logo">DMC <span>투어링크</span></a>
+    <nav class="nav-menu" id="navMenu">
+      <a href="{{ '/tours/' | relative_url }}">투어 검색</a>
+      <a href="{{ '/continent/asia/' | relative_url }}">대륙별</a>
+      <a href="{{ '/partners/' | relative_url }}">입점 안내</a>
+    </nav>
+    <div class="header-cta">
+      <a href="tel:{{ site.brand.phone }}" class="header-phone">☎️ {{ site.brand.phone }}</a>
+      <a href="{{ site.brand.kakao }}" target="_blank" class="btn btn-kakao btn-sm">카카오톡</a>
+    </div>
+    <button class="mobile-toggle" onclick="document.getElementById('navMenu').classList.toggle('open')">☰</button>
+  </div>
+</header>

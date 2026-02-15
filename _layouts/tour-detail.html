@@ -1,0 +1,151 @@
+---
+layout: default
+---
+{% assign t = page %}
+{% assign operator = nil %}
+{% for op in site.data.operators %}
+  {% if op.id == t.operatorId %}{% assign operator = op %}{% endif %}
+{% endfor %}
+
+<!-- Hero -->
+<div class="detail-hero">
+  <div class="container">
+    <p style="font-size:14px;opacity:0.8;margin-bottom:8px;">{{ t.countryName }} · {{ t.city }} · {{ t.category }}</p>
+    <h1>{{ t.title }}</h1>
+    <div class="meta">
+      ⏱️ {{ t.duration }} · 👥 최대 {{ t.groupSize }}명 · 🌐 {{ t.languages | join: ", " }}
+    </div>
+    <div style="margin-top:20px;">
+      <span style="font-size:32px;font-weight:900;">${{ t.priceFrom }}~</span>
+      <span style="opacity:0.8;">/1인</span>
+    </div>
+    <div class="cta-buttons" style="margin-top:20px;justify-content:flex-start;">
+      <button class="btn btn-primary btn-lg" onclick="openInquiry('{{ t.title }}','{{ t.duration }}','{{ t.priceFrom }}','{{ operator.name | default: "" }}','{{ operator.contact.email | default: "" }}')">📧 문의하기</button>
+      <a href="{{ site.brand.kakao }}" target="_blank" class="btn btn-kakao btn-lg">💬 카카오톡 상담</a>
+      <a href="tel:{{ site.brand.phone }}" class="btn btn-outline btn-lg" style="border-color:white;color:white;">☎️ {{ site.brand.phone }}</a>
+    </div>
+  </div>
+</div>
+
+<!-- Info Bar -->
+<div class="container">
+  <div class="info-bar">
+    <div class="info-bar-item"><div class="label">지역</div><div class="value">{{ t.countryName }} {{ t.city }}</div></div>
+    <div class="info-bar-item"><div class="label">기간</div><div class="value">{{ t.duration }}</div></div>
+    <div class="info-bar-item"><div class="label">인원</div><div class="value">최대 {{ t.groupSize }}명</div></div>
+    <div class="info-bar-item"><div class="label">카테고리</div><div class="value">{{ t.category }}</div></div>
+    <div class="info-bar-item"><div class="label">가격</div><div class="value" style="color:var(--orange);">${{ t.priceFrom }}~</div></div>
+  </div>
+</div>
+
+<!-- Description -->
+<div class="section">
+  <div class="container">
+    <h2 class="section-title">📋 투어 소개</h2>
+    <p style="font-size:16px;line-height:1.8;margin-bottom:24px;">{{ t.description }}</p>
+
+    {% if t.highlights %}
+    <h3 style="font-size:18px;font-weight:700;color:var(--navy);margin-bottom:12px;">✨ 하이라이트</h3>
+    <ul style="list-style:none;padding:0;">
+      {% for h in t.highlights %}
+      <li style="padding:6px 0;font-size:15px;padding-left:24px;position:relative;"><span style="position:absolute;left:0;">⭐</span> {{ h }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Itinerary -->
+{% if t.itinerary %}
+<div class="section section-alt">
+  <div class="container">
+    <h2 class="section-title">🗓️ 상세 일정</h2>
+    <div class="timeline">
+      {% for day in t.itinerary %}
+      <div class="timeline-day">
+        <h3>Day {{ day.day }} — {{ day.title }}</h3>
+        <div class="desc">{{ day.description }}</div>
+      </div>
+      {% endfor %}
+    </div>
+    {{ content }}
+  </div>
+</div>
+{% endif %}
+
+<!-- Inclusions -->
+{% if t.included %}
+<div class="section">
+  <div class="container">
+    <h2 class="section-title">📋 포함 / 불포함 사항</h2>
+    <div class="inclusions">
+      <div class="inclusion-list included">
+        <h3>✅ 포함 사항</h3>
+        <ul>{% for item in t.included %}<li>{{ item }}</li>{% endfor %}</ul>
+      </div>
+      <div class="inclusion-list excluded">
+        <h3>❌ 불포함 사항</h3>
+        <ul>{% for item in t.excluded %}<li>{{ item }}</li>{% endfor %}</ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Operator Info -->
+{% if operator %}
+<div class="section section-alt">
+  <div class="container">
+    <h2 class="section-title">🏢 운영사 정보</h2>
+    <div class="operator-card">
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;">
+        <span style="font-size:48px;">{{ operator.logo }}</span>
+        <div>
+          <h3 style="font-size:20px;font-weight:700;color:var(--navy);">{{ operator.name }}</h3>
+          <p style="font-size:14px;color:var(--gray-700);">설립 {{ operator.established }}년 · {{ operator.languages | join: ", " }}</p>
+        </div>
+      </div>
+      <p style="font-size:15px;line-height:1.7;">{{ operator.description }}</p>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Related Tours -->
+<div class="section">
+  <div class="container">
+    <h2 class="section-title">🔗 관련 투어</h2>
+    <div class="cruise-grid">
+      {% for tour in site.data.tours %}
+        {% if tour.continent == t.continent and tour.id != t.tourId %}
+        <a href="{{ '/tour/' | append: tour.slug | append: '/' | relative_url }}" class="cruise-card-link">
+          <div class="cruise-card">
+            <div class="cruise-card-image"><div class="placeholder">{{ tour.image }}</div></div>
+            <div class="cruise-card-body">
+              <div class="cruise-card-meta">{{ tour.countryName }} · {{ tour.city }}</div>
+              <div class="cruise-card-title">{{ tour.title }}</div>
+              <div class="cruise-card-ports">{{ tour.duration }} · {{ tour.category }}</div>
+              <div class="cruise-card-footer">
+                <div class="cruise-card-price">${{ tour.priceFrom }}~ <small>/1인</small></div>
+              </div>
+            </div>
+          </div>
+        </a>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- CTA -->
+<div class="cta-section">
+  <div class="container">
+    <h2>이 투어가 마음에 드셨나요?</h2>
+    <p>DMC 투어링크가 현지 운영사와 직접 연결해드립니다.</p>
+    <div class="cta-buttons">
+      <button class="btn btn-primary btn-lg" onclick="openInquiry('{{ t.title }}','{{ t.duration }}','{{ t.priceFrom }}','{{ operator.name | default: "" }}','{{ operator.contact.email | default: "" }}')">📧 문의하기</button>
+      <a href="{{ site.brand.kakao }}" target="_blank" class="btn btn-kakao btn-lg">💬 카카오톡 상담</a>
+      <a href="tel:{{ site.brand.phone }}" class="btn btn-outline btn-lg" style="border-color:white;color:white;">☎️ {{ site.brand.phone }}</a>
+    </div>
+  </div>
+</div>

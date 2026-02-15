@@ -1,0 +1,17 @@
+---
+layout: default
+title: "아메리카 투어 - DMC 투어링크"
+---
+<div class="page-header"><div class="container"><h1>🗽 아메리카 현지투어</h1></div></div>
+<div class="section"><div class="container">
+<h2 class="section-title">🗺️ 아메리카 국가별 투어</h2>
+<p class="section-subtitle">국가를 선택하면 해당 투어를 볼 수 있습니다</p>
+<div class="country-grid"><a href="{{ '/tours/?country=US' | relative_url }}" class="country-card"><span class="flag">🇺🇸</span><div><h3>미국</h3></div></a><a href="{{ '/tours/?country=CA' | relative_url }}" class="country-card"><span class="flag">🇨🇦</span><div><h3>캐나다</h3></div></a><a href="{{ '/tours/?country=MX' | relative_url }}" class="country-card"><span class="flag">🇲🇽</span><div><h3>멕시코</h3></div></a></div>
+</div></div>
+<div class="section section-alt"><div class="container">
+<h2 class="section-title">⭐ 아메리카 인기 투어</h2>
+<div class="cruise-grid">
+{% for tour in site.data.tours %}{% if tour.continent == "americas" %}
+<a href="{{ '/tour/' | append: tour.slug | append: '/' | relative_url }}" class="cruise-card-link"><div class="cruise-card"><div class="cruise-card-image"><div class="placeholder">{{ tour.image }}</div></div><div class="cruise-card-body"><div class="cruise-card-meta">{{ tour.countryName }} · {{ tour.city }}</div><div class="cruise-card-title">{{ tour.title }}</div><div class="cruise-card-ports">⏱️ {{ tour.duration }} · ${{ tour.priceFrom }}~/1인</div><div class="cruise-card-footer"><div class="cruise-card-price">${{ tour.priceFrom }}~ <small>/1인</small></div><span class="btn btn-sm btn-secondary">자세히보기</span></div></div></div></a>
+{% endif %}{% endfor %}
+</div></div></div>

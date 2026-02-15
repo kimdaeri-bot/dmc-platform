@@ -1,0 +1,92 @@
+[
+  {
+    "id": "sakura-tours",
+    "name": "Sakura Tours Japan",
+    "country": "JP",
+    "continent": "asia",
+    "logo": "🌸",
+    "description": "일본 전문 현지 투어 오퍼레이터. 도쿄, 오사카, 교토 등 주요 도시 투어 운영.",
+    "contact": {
+      "email": "info@sakuratours.jp",
+      "phone": "+81-3-1234-5678",
+      "website": "https://sakuratours.jp"
+    },
+    "established": 2010,
+    "languages": ["일본어", "영어", "한국어"]
+  },
+  {
+    "id": "bali-paradise",
+    "name": "Bali Paradise DMC",
+    "country": "ID",
+    "continent": "asia",
+    "logo": "🏝️",
+    "description": "발리 전문 DMC. 문화체험, 자연탐험, 럭셔리 리조트 투어 전문.",
+    "contact": {
+      "email": "hello@baliparadise.id",
+      "phone": "+62-361-123456",
+      "website": "https://baliparadise.id"
+    },
+    "established": 2015,
+    "languages": ["인도네시아어", "영어", "한국어"]
+  },
+  {
+    "id": "paris-elite",
+    "name": "Paris Elite Tours",
+    "country": "FR",
+    "continent": "europe",
+    "logo": "🗼",
+    "description": "파리 및 프랑스 전역 프리미엄 투어. 미식, 와인, 문화 투어 전문.",
+    "contact": {
+      "email": "contact@pariselite.fr",
+      "phone": "+33-1-2345-6789",
+      "website": "https://pariselite.fr"
+    },
+    "established": 2008,
+    "languages": ["프랑스어", "영어", "한국어"]
+  },
+  {
+    "id": "aegean-discovery",
+    "name": "Aegean Discovery",
+    "country": "GR",
+    "continent": "europe",
+    "logo": "🏛️",
+    "description": "그리스 섬 투어 전문. 산토리니, 미코노스, 크레타 등.",
+    "contact": {
+      "email": "tours@aegeandiscovery.gr",
+      "phone": "+30-210-1234567",
+      "website": "https://aegeandiscovery.gr"
+    },
+    "established": 2012,
+    "languages": ["그리스어", "영어"]
+  },
+  {
+    "id": "liberty-tours",
+    "name": "Liberty Tours NYC",
+    "country": "US",
+    "continent": "americas",
+    "logo": "🗽",
+    "description": "뉴욕 시티투어 전문. 맨해튼, 브루클린, 자유의 여신상 투어.",
+    "contact": {
+      "email": "info@libertytours.nyc",
+      "phone": "+1-212-555-0123",
+      "website": "https://libertytours.nyc"
+    },
+    "established": 2005,
+    "languages": ["영어", "한국어", "중국어"]
+  },
+  {
+    "id": "aussie-adventures",
+    "name": "Aussie Adventures",
+    "country": "AU",
+    "continent": "oceania",
+    "logo": "🦘",
+    "description": "호주 자연탐험 전문. 시드니, 멜번, 블루마운틴, 그레이트배리어리프.",
+    "contact": {
+      "email": "hello@aussieadventures.com.au",
+      "phone": "+61-2-9876-5432",
+      "website": "https://aussieadventures.com.au"
+    },
+    "established": 2011,
+    "languages": ["영어", "한국어"]
+  }
+]

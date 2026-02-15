@@ -1,0 +1,32 @@
+title: "DMC 투어링크 - 현지투어 메타 플랫폼"
+description: "전 세계 DMC 현지투어를 한눈에. 아시아, 유럽, 아메리카, 오세아니아, 아프리카, 중동 현지 투어 상품을 비교하고 문의하세요."
+url: "https://kimdaeri-bot.github.io"
+baseurl: "/dmc-platform"
+lang: ko
+
+brand:
+  name: "DMC 투어링크"
+  email: "info@londonshow.co.kr"
+  phone: "02-3788-9119"
+  kakao: "https://pf.kakao.com/_xgYbJG"
+
+collections:
+  tours:
+    output: true
+    permalink: /tour/:path/
+
+defaults:
+  - scope:
+      path: ""
+      type: "tours"
+    values:
+      layout: "tour-detail"
+
+plugins:
+  - jekyll-seo-tag
+  - jekyll-sitemap
+
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - README.md
