@@ -1,0 +1,183 @@
+---
+layout: default
+title: DMC Partner Registration - DMC TourLink
+---
+
+<div class="section">
+  <div class="container">
+    <div class="auth-container auth-signup">
+      <div class="auth-card">
+        <h1 class="auth-title">DMC Partner Registration</h1>
+        <p class="auth-subtitle">Register as a DMC operator on TourLink.<br>Your account will be activated after admin approval.</p>
+
+        <form id="signupForm" onsubmit="return handleSignup(event)">
+          <!-- Company Information -->
+          <h3 class="auth-section-title">🌍 Company Information</h3>
+          <div class="form-group">
+            <label for="companyName">Company Name <span class="req">*</span></label>
+            <input type="text" id="companyName" name="companyName" placeholder="e.g. ABC Tours Co., Ltd." required>
+          </div>
+          <div class="form-group">
+            <label for="operatingCountry">Operating Country / Region <span class="req">*</span></label>
+            <input type="text" id="operatingCountry" name="operatingCountry" placeholder="e.g. Thailand, Vietnam, Japan" required>
+          </div>
+          <div class="form-group">
+            <label>Tour Categories</label>
+            <div class="checkbox-grid">
+              <label class="checkbox-item"><input type="checkbox" name="tourCategory" value="City Tour"> City Tour</label>
+              <label class="checkbox-item"><input type="checkbox" name="tourCategory" value="Nature"> Nature</label>
+              <label class="checkbox-item"><input type="checkbox" name="tourCategory" value="Culture/Experience"> Culture / Experience</label>
+              <label class="checkbox-item"><input type="checkbox" name="tourCategory" value="Adventure"> Adventure</label>
+              <label class="checkbox-item"><input type="checkbox" name="tourCategory" value="Food/Culinary"> Food / Culinary</label>
+              <label class="checkbox-item"><input type="checkbox" name="tourCategory" value="Luxury"> Luxury</label>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="companyDesc">Company Description</label>
+            <textarea id="companyDesc" name="companyDesc" rows="4" placeholder="Briefly introduce your company and services." style="width:100%;padding:12px;border:1px solid var(--gray-300);border-radius:8px;font-size:14px;resize:vertical"></textarea>
+          </div>
+
+          <!-- Contact Information -->
+          <h3 class="auth-section-title">👤 Contact Information</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="name">Contact Name <span class="req">*</span></label>
+              <input type="text" id="name" name="name" placeholder="John Doe" required>
+            </div>
+            <div class="form-group">
+              <label for="position">Position <span class="req">*</span></label>
+              <input type="text" id="position" name="position" placeholder="Manager" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="email">Email <span class="req">*</span></label>
+            <input type="email" id="email" name="email" placeholder="contact@company.com" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="password">Password <span class="req">*</span></label>
+              <input type="password" id="password" name="password" placeholder="Min 8 characters" required minlength="8">
+            </div>
+            <div class="form-group">
+              <label for="passwordConfirm">Confirm Password <span class="req">*</span></label>
+              <input type="password" id="passwordConfirm" name="passwordConfirm" placeholder="Re-enter password" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="phone">Phone <span class="req">*</span></label>
+            <input type="tel" id="phone" name="phone" placeholder="+66-2-000-0000" required>
+          </div>
+          <div class="form-group">
+            <label for="website">Website <span style="color:var(--gray-500);">(optional)</span></label>
+            <input type="url" id="website" name="website" placeholder="https://www.company.com">
+          </div>
+
+          <!-- Terms & Conditions -->
+          <h3 class="auth-section-title">📄 Terms & Conditions</h3>
+          <div class="terms-agree">
+            <label class="checkbox-item">
+              <input type="checkbox" id="agreeAll" onchange="toggleAll(this)">
+              <strong>Agree to all</strong>
+            </label>
+            <hr style="margin:12px 0;border:none;border-top:1px solid var(--gray-200);">
+            <label class="checkbox-item">
+              <input type="checkbox" name="agree" value="terms" class="agree-item" required>
+              I agree to the <a href="{{ '/terms/' | relative_url }}" target="_blank">Terms of Service</a> <span class="req">(required)</span>
+            </label>
+            <label class="checkbox-item">
+              <input type="checkbox" name="agree" value="privacy" class="agree-item" required>
+              I agree to the <a href="{{ '/privacy/' | relative_url }}" target="_blank">Privacy Policy</a> <span class="req">(required)</span>
+            </label>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-lg" style="width:100%;margin-top:24px;">Submit Registration</button>
+        </form>
+
+        <div id="signupMessage" class="form-status" style="margin-top:16px;"></div>
+
+        <div class="auth-footer">
+          <p>Already have an account? <a href="{{ '/auth/login/' | relative_url }}">Login</a></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function toggleAll(el) {
+  document.querySelectorAll('.agree-item').forEach(function(cb) { cb.checked = el.checked; });
+}
+document.querySelectorAll('.agree-item').forEach(function(cb) {
+  cb.addEventListener('change', function() {
+    var all = document.querySelectorAll('.agree-item');
+    var checked = document.querySelectorAll('.agree-item:checked');
+    document.getElementById('agreeAll').checked = all.length === checked.length;
+  });
+});
+function handleSignup(e) {
+  e.preventDefault();
+  var pw = document.getElementById('password').value;
+  var pwc = document.getElementById('passwordConfirm').value;
+  var msg = document.getElementById('signupMessage');
+  var btn = document.querySelector('#signupForm button[type="submit"]');
+
+  if (pw !== pwc) {
+    msg.className = 'form-status error';
+    msg.style.display = 'block';
+    msg.textContent = 'Passwords do not match.';
+    return false;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Processing...';
+  msg.style.display = 'none';
+
+  var email = document.getElementById('email').value;
+  var categories = [];
+  document.querySelectorAll('input[name="tourCategory"]:checked').forEach(function(cb) {
+    categories.push(cb.value);
+  });
+
+  auth.createUserWithEmailAndPassword(email, pw)
+    .then(function(cred) {
+      var now = firebase.firestore.FieldValue.serverTimestamp();
+      var userData = {
+        companyName: document.getElementById('companyName').value,
+        operatingCountry: document.getElementById('operatingCountry').value,
+        tourCategories: categories,
+        companyDescription: document.getElementById('companyDesc').value || '',
+        contactName: document.getElementById('name').value,
+        position: document.getElementById('position').value,
+        email: email,
+        phone: document.getElementById('phone').value,
+        website: document.getElementById('website').value || '',
+        role: 'dmc',
+        status: 'pending',
+        createdAt: now,
+        updatedAt: now
+      };
+      return db.collection('users').doc(cred.user.uid).set(userData);
+    })
+    .then(function() {
+      return auth.signOut();
+    })
+    .then(function() {
+      document.getElementById('signupForm').style.display = 'none';
+      msg.className = 'form-status success';
+      msg.style.display = 'block';
+      msg.innerHTML = '<strong>✅ Registration submitted successfully.</strong><br>You will be notified once approved.';
+    })
+    .catch(function(err) {
+      msg.className = 'form-status error';
+      msg.style.display = 'block';
+      var errMsg = 'Registration failed.';
+      if (err.code === 'auth/email-already-in-use') errMsg = 'This email is already registered.';
+      else if (err.code === 'auth/weak-password') errMsg = 'Password is too weak. Please use at least 6 characters.';
+      else if (err.code === 'auth/invalid-email') errMsg = 'Invalid email format.';
+      msg.textContent = errMsg;
+      btn.disabled = false;
+      btn.textContent = 'Submit Registration';
+    });
+  return false;
+}
+</script>

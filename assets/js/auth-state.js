@@ -10,6 +10,14 @@
         currentProfile = doc.exists ? doc.data() : null;
         updateHeaderUI(user, currentProfile);
         window.DMC_USER = { uid: user.uid, profile: currentProfile };
+        // DMC role: set lang=en and data-role for English UI support
+        if (currentProfile && currentProfile.role === 'dmc') {
+          document.documentElement.lang = 'en';
+          document.documentElement.setAttribute('data-role', 'dmc');
+        } else {
+          document.documentElement.lang = 'ko';
+          document.documentElement.removeAttribute('data-role');
+        }
         document.dispatchEvent(new CustomEvent('dmcAuthReady', { detail: window.DMC_USER }));
       }).catch(function() {
         updateHeaderUI(user, null);

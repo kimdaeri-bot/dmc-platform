@@ -1,54 +1,16 @@
 ---
 layout: default
-title: 회원가입 - DMC 투어링크
+title: 여행사 회원가입 - DMC 투어링크
 ---
 
 <div class="section">
   <div class="container">
     <div class="auth-container auth-signup">
       <div class="auth-card">
-        <h1 class="auth-title">회원가입</h1>
+        <h1 class="auth-title">여행사 회원가입</h1>
         <p class="auth-subtitle">B2B 투어 플랫폼입니다.<br>가입 신청 후 관리자 승인이 필요합니다.</p>
 
         <form id="signupForm" onsubmit="return handleSignup(event)">
-          <!-- 가입 유형 선택 -->
-          <h3 class="auth-section-title">🔑 가입 유형</h3>
-          <div class="role-selector" style="display:flex;gap:16px;margin-bottom:24px">
-            <label class="role-card selected" id="roleCard-agency" onclick="selectRole('agency')" style="flex:1;display:flex;align-items:center;gap:12px;padding:20px;border:2px solid var(--navy);border-radius:12px;cursor:pointer;background:#fff;transition:all .2s;position:relative">
-              <input type="radio" name="role" value="agency" checked style="display:none">
-              <span style="font-size:32px">🏢</span>
-              <span><strong style="font-size:15px;display:block">여행사</strong><small style="color:var(--gray-500)">Travel Agency</small></span>
-              <span class="role-check" style="position:absolute;top:8px;right:8px;font-size:18px;color:var(--navy)">✔</span>
-            </label>
-            <label class="role-card" id="roleCard-dmc" onclick="selectRole('dmc')" style="flex:1;display:flex;align-items:center;gap:12px;padding:20px;border:2px solid var(--gray-200);border-radius:12px;cursor:pointer;background:#fff;transition:all .2s;position:relative">
-              <input type="radio" name="role" value="dmc" style="display:none">
-              <span style="font-size:32px">🌍</span>
-              <span><strong style="font-size:15px;display:block">DMC 운영사</strong><small style="color:var(--gray-500)">DMC Operator</small></span>
-              <span class="role-check" style="position:absolute;top:8px;right:8px;font-size:18px;color:var(--navy);display:none">✔</span>
-            </label>
-          </div>
-
-          <!-- DMC 추가 필드 (숨김) -->
-          <div id="dmcFields" style="display:none;margin-bottom:24px;padding:20px;background:var(--gray-50);border-radius:12px;border:1px solid var(--gray-200)">
-            <h3 class="auth-section-title" style="margin-top:0">🌍 DMC 정보</h3>
-            <div class="form-group">
-              <label for="operatingCountry">운영 국가/지역 <span class="req">*</span></label>
-              <input type="text" id="operatingCountry" name="operatingCountry" placeholder="예: 일본, 태국, 베트남">
-            </div>
-            <div class="form-group">
-              <label>주요 투어 카테고리</label>
-              <div class="checkbox-grid">
-                <label class="checkbox-item"><input type="checkbox" name="tourCategory" value="시티투어"> 시티투어</label>
-                <label class="checkbox-item"><input type="checkbox" name="tourCategory" value="자연/관광"> 자연/관광</label>
-                <label class="checkbox-item"><input type="checkbox" name="tourCategory" value="문화/체험"> 문화/체험</label>
-              </div>
-            </div>
-            <div class="form-group">
-              <label for="companyDesc">회사 소개</label>
-              <textarea id="companyDesc" name="companyDesc" rows="4" placeholder="회사에 대해 간략히 소개해 주세요." style="width:100%;padding:12px;border:1px solid var(--gray-300);border-radius:8px;font-size:14px;resize:vertical"></textarea>
-            </div>
-          </div>
-
           <!-- 회사 정보 -->
           <h3 class="auth-section-title">🏢 회사 정보</h3>
           <div class="form-group">
@@ -149,20 +111,6 @@ title: 회원가입 - DMC 투어링크
 </div>
 
 <script>
-var selectedRole = 'agency';
-function selectRole(role) {
-  selectedRole = role;
-  document.querySelectorAll('.role-card').forEach(function(c){
-    c.style.borderColor = 'var(--gray-200)';
-    c.querySelector('.role-check').style.display = 'none';
-  });
-  var card = document.getElementById('roleCard-' + role);
-  card.style.borderColor = 'var(--navy)';
-  card.querySelector('.role-check').style.display = 'block';
-  card.querySelector('input[type="radio"]').checked = true;
-  document.getElementById('dmcFields').style.display = role === 'dmc' ? 'block' : 'none';
-}
-
 function toggleAll(el) {
   document.querySelectorAll('.agree-item').forEach(function(cb) { cb.checked = el.checked; });
 }
@@ -210,18 +158,11 @@ function handleSignup(e) {
         phone: document.getElementById('phone').value,
         website: document.getElementById('website').value || '',
         regions: regions,
-        role: selectedRole,
+        role: 'agency',
         status: 'pending',
         createdAt: now,
         updatedAt: now
       };
-      if (selectedRole === 'dmc') {
-        userData.operatingCountry = document.getElementById('operatingCountry').value || '';
-        var cats = [];
-        document.querySelectorAll('input[name="tourCategory"]:checked').forEach(function(cb){ cats.push(cb.value); });
-        userData.tourCategories = cats;
-        userData.companyDescription = document.getElementById('companyDesc').value || '';
-      }
       return db.collection('users').doc(cred.user.uid).set(userData);
     })
     .then(function() {
