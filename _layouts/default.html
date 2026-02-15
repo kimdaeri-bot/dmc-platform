@@ -18,6 +18,13 @@
   <main>{{ content }}</main>
   {% include footer.html %}
   {% include inquiry-modal.html %}
+  <script>window.BASE_URL = '{{ "" | relative_url }}';</script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="{{ '/assets/js/firebase-init.js' | relative_url }}"></script>
+  <script src="{{ '/assets/js/auth-state.js' | relative_url }}"></script>
+  <script src="{{ '/assets/js/inquiry-system.js' | relative_url }}"></script>
   <script src="{{ '/assets/js/main.js' | relative_url }}"></script>
 </body>
 </html>

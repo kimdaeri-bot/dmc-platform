@@ -1,0 +1,179 @@
+---
+layout: default
+title: 대시보드 - DMC 투어링크
+---
+
+<style>
+.dash-wrap{display:flex;min-height:calc(100vh - 70px)}
+.dash-side{width:240px;background:var(--navy-dark);color:#fff;padding:24px 0;flex-shrink:0}
+.dash-side h2{padding:0 20px;font-size:16px;margin-bottom:24px;color:var(--orange)}
+.dash-side a{display:block;padding:12px 20px;color:rgba(255,255,255,.8);font-size:14px;font-weight:500;transition:background .2s}
+.dash-side a:hover,.dash-side a.active{background:rgba(255,255,255,.1);color:#fff}
+.dash-content{flex:1;padding:32px;background:var(--gray-50);overflow-y:auto}
+.dash-title{font-size:24px;font-weight:900;color:var(--navy);margin-bottom:24px}
+.inq-card{background:#fff;border:2px solid var(--gray-200);border-radius:12px;padding:20px;margin-bottom:12px;cursor:pointer;transition:border-color .2s}
+.inq-card:hover{border-color:var(--navy)}
+.inq-card h3{font-size:16px;font-weight:700;color:var(--navy);margin-bottom:4px}
+.inq-card p{font-size:13px;color:var(--gray-700);margin-bottom:8px}
+.inq-badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:700}
+.inq-badge.open{background:#e8f5e9;color:#2e7d32}
+.inq-badge.in-progress{background:#fff3e0;color:#e65100}
+.inq-badge.closed{background:var(--gray-200);color:var(--gray-700)}
+.inq-detail{background:#fff;border-radius:12px;padding:24px;border:2px solid var(--gray-200)}
+.inq-detail h2{font-size:20px;font-weight:700;color:var(--navy);margin-bottom:16px}
+.inq-meta{font-size:13px;color:var(--gray-700);margin-bottom:16px;line-height:1.8}
+.chat-area{margin-top:20px;border-top:1px solid var(--gray-200);padding-top:16px}
+.chat-msg{display:flex;margin-bottom:12px}
+.chat-msg.mine{justify-content:flex-end}
+.chat-bubble{max-width:70%;padding:12px 16px;border-radius:12px;font-size:14px;line-height:1.6}
+.chat-msg:not(.mine) .chat-bubble{background:var(--gray-100);border-bottom-left-radius:4px}
+.chat-msg.mine .chat-bubble{background:var(--navy);color:#fff;border-bottom-right-radius:4px}
+.chat-author{font-size:11px;font-weight:700;color:var(--gray-500);margin-bottom:2px}
+.chat-time{font-size:10px;color:var(--gray-500);margin-top:4px}
+.chat-input{display:flex;gap:8px;margin-top:16px}
+.chat-input input{flex:1;padding:10px 14px;border:1px solid var(--gray-300);border-radius:8px;font-family:inherit;font-size:14px}
+.dash-empty{text-align:center;padding:60px 20px;color:var(--gray-500)}
+.dash-empty .icon{font-size:48px;margin-bottom:12px}
+.back-btn{background:none;border:none;color:var(--navy);font-weight:700;cursor:pointer;font-size:14px;margin-bottom:16px;padding:0}
+@media(max-width:768px){.dash-wrap{flex-direction:column}.dash-side{width:100%;display:flex;overflow-x:auto;padding:12px}.dash-side h2{display:none}.dash-side a{white-space:nowrap;padding:8px 16px}.dash-content{padding:16px}}
+</style>
+
+<div class="dash-wrap">
+  <nav class="dash-side">
+    <h2>📋 대시보드</h2>
+    <a href="#" class="active" id="navInquiries">💬 문의 관리</a>
+    <a href="#" id="navProfile">👤 내 정보</a>
+  </nav>
+  <div class="dash-content" id="dashContent">
+    <div id="loadingState" style="text-align:center;padding:60px"><p>로딩 중...</p></div>
+  </div>
+</div>
+
+<script>
+var baseUrl = window.BASE_URL || '/dmc-platform';
+
+document.addEventListener('dmcAuthReady', function(e) {
+  var u = e.detail;
+  if (!u || !u.profile) {
+    location.href = baseUrl + '/auth/login/?redirect=' + encodeURIComponent(location.pathname);
+    return;
+  }
+  if (u.profile.status !== 'approved') {
+    document.getElementById('dashContent').innerHTML =
+      '<div class="dash-empty"><div class="icon">⏳</div><h3>승인 대기 중</h3><p>관리자 승인 후 이용 가능합니다.</p></div>';
+    return;
+  }
+  loadInquiries();
+});
+
+document.getElementById('navInquiries').onclick = function(e){ e.preventDefault(); loadInquiries(); setActive(this); };
+document.getElementById('navProfile').onclick = function(e){ e.preventDefault(); loadProfile(); setActive(this); };
+
+function setActive(el){
+  document.querySelectorAll('.dash-side a').forEach(function(a){a.classList.remove('active')});
+  el.classList.add('active');
+}
+
+function loadInquiries() {
+  var u = window.DMC_USER;
+  var content = document.getElementById('dashContent');
+  content.innerHTML = '<h1 class="dash-title">💬 문의 관리</h1><div id="inqList"><p>로딩 중...</p></div>';
+
+  var query;
+  if (u.profile.role === 'dmc') {
+    query = db.collection('inquiries').where('dmcId', '==', u.uid).orderBy('createdAt', 'desc');
+  } else {
+    query = db.collection('inquiries').where('agencyUid', '==', u.uid).orderBy('createdAt', 'desc');
+  }
+
+  query.get().then(function(snap) {
+    var list = document.getElementById('inqList');
+    if (snap.empty) {
+      list.innerHTML = '<div class="dash-empty"><div class="icon">📭</div><p>아직 문의가 없습니다.</p></div>';
+      return;
+    }
+    var html = '';
+    snap.forEach(function(doc) {
+      var d = doc.data();
+      var date = d.createdAt ? new Date(d.createdAt.seconds * 1000).toLocaleDateString('ko-KR') : '';
+      html += '<div class="inq-card" onclick="viewInquiry(\'' + doc.id + '\')">' +
+        '<h3>' + esc(d.tourTitle || d.subject) + '</h3>' +
+        '<p>' + esc(d.subject) + '</p>' +
+        '<span class="inq-badge ' + d.status + '">' + statusLabel(d.status) + '</span> ' +
+        '<span style="font-size:12px;color:var(--gray-500)">' + date + '</span></div>';
+    });
+    list.innerHTML = html;
+  });
+}
+
+function viewInquiry(id) {
+  var content = document.getElementById('dashContent');
+  content.innerHTML = '<p>로딩 중...</p>';
+
+  db.collection('inquiries').doc(id).get().then(function(doc) {
+    var d = doc.data();
+    var date = d.createdAt ? new Date(d.createdAt.seconds * 1000).toLocaleString('ko-KR') : '';
+    var html = '<button class="back-btn" onclick="loadInquiries()">← 목록으로</button>' +
+      '<div class="inq-detail"><h2>' + esc(d.tourTitle) + '</h2>' +
+      '<div class="inq-meta"><strong>제목:</strong> ' + esc(d.subject) + '<br>' +
+      '<strong>상태:</strong> <span class="inq-badge ' + d.status + '">' + statusLabel(d.status) + '</span><br>' +
+      '<strong>작성일:</strong> ' + date + '</div>' +
+      '<p>' + esc(d.message) + '</p>' +
+      '<div class="chat-area"><h3 style="font-size:16px;font-weight:700;margin-bottom:12px">💬 댓글</h3>' +
+      '<div id="commentList"><p>로딩 중...</p></div>' +
+      '<div class="chat-input"><input type="text" id="commentInput" placeholder="댓글을 입력하세요..." onkeypress="if(event.key===\'Enter\')addComment(\'' + id + '\')">' +
+      '<button class="btn btn-primary btn-sm" onclick="addComment(\'' + id + '\')">전송</button></div>' +
+      '</div></div>';
+    content.innerHTML = html;
+
+    InquirySystem.getComments(id).then(function(snap) {
+      var cl = document.getElementById('commentList');
+      if (snap.empty) { cl.innerHTML = '<p style="color:var(--gray-500);font-size:13px">아직 댓글이 없습니다.</p>'; return; }
+      var ch = '';
+      snap.forEach(function(cdoc) {
+        var c = cdoc.data();
+        var mine = window.DMC_USER && c.authorUid === window.DMC_USER.uid;
+        var t = c.createdAt ? new Date(c.createdAt.seconds * 1000).toLocaleString('ko-KR') : '';
+        ch += '<div class="chat-msg' + (mine ? ' mine' : '') + '"><div>' +
+          '<div class="chat-author">' + esc(c.authorName) + ' (' + roleLabel(c.authorRole) + ')</div>' +
+          '<div class="chat-bubble">' + esc(c.message) + '</div>' +
+          '<div class="chat-time">' + t + '</div></div></div>';
+      });
+      cl.innerHTML = ch;
+      cl.scrollTop = cl.scrollHeight;
+    });
+  });
+}
+
+function addComment(inquiryId) {
+  var input = document.getElementById('commentInput');
+  var msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+  InquirySystem.addComment(inquiryId, msg).then(function() {
+    viewInquiry(inquiryId);
+  }).catch(function(err) { alert('댓글 등록 실패: ' + err); });
+}
+
+function loadProfile() {
+  var u = window.DMC_USER;
+  var p = u.profile;
+  var content = document.getElementById('dashContent');
+  content.innerHTML = '<h1 class="dash-title">👤 내 정보</h1>' +
+    '<div class="inq-detail">' +
+    '<p><strong>회사명:</strong> ' + esc(p.companyNameKr) + ' (' + esc(p.companyNameEn) + ')</p>' +
+    '<p><strong>사업자번호:</strong> ' + esc(p.businessNumber) + '</p>' +
+    '<p><strong>담당자:</strong> ' + esc(p.contactName) + ' / ' + esc(p.position) + '</p>' +
+    '<p><strong>이메일:</strong> ' + esc(p.email) + '</p>' +
+    '<p><strong>전화:</strong> ' + esc(p.phone) + '</p>' +
+    '<p><strong>웹사이트:</strong> ' + esc(p.website || '-') + '</p>' +
+    '<p><strong>역할:</strong> ' + roleLabel(p.role) + '</p>' +
+    '<p><strong>상태:</strong> <span class="inq-badge ' + p.status + '">' + statusLabel(p.status) + '</span></p>' +
+    '</div>';
+}
+
+function statusLabel(s){return{open:'접수',
+'in-progress':'진행중',closed:'완료',pending:'대기',approved:'승인',rejected:'거절'}[s]||s}
+function roleLabel(r){return{agency:'여행사',dmc:'DMC',admin:'관리자'}[r]||r}
+function esc(s){if(!s)return'';var d=document.createElement('div');d.textContent=s;return d.innerHTML}
+</script>

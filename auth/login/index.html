@@ -40,9 +40,68 @@ title: 로그인 - DMC 투어링크
 function handleLogin(e) {
   e.preventDefault();
   var msg = document.getElementById('loginMessage');
-  msg.className = 'form-status success';
-  msg.style.display = 'block';
-  msg.textContent = '데모 모드: 로그인 기능은 정적 사이트에서 지원되지 않습니다.';
+  var email = document.getElementById('email').value;
+  var password = document.getElementById('password').value;
+  var btn = document.querySelector('#loginForm button[type="submit"]');
+  btn.disabled = true;
+  btn.textContent = '로그인 중...';
+  msg.style.display = 'none';
+
+  auth.signInWithEmailAndPassword(email, password)
+    .then(function(cred) {
+      return db.collection('users').doc(cred.user.uid).get();
+    })
+    .then(function(doc) {
+      var baseUrl = window.BASE_URL || '/dmc-platform';
+      if (!doc.exists) {
+        msg.className = 'form-status error';
+        msg.style.display = 'block';
+        msg.textContent = '사용자 프로필을 찾을 수 없습니다.';
+        btn.disabled = false;
+        btn.textContent = '로그인';
+        return;
+      }
+      var profile = doc.data();
+      if (profile.status === 'pending') {
+        msg.className = 'form-status error';
+        msg.style.display = 'block';
+        msg.innerHTML = '⏳ <strong>관리자 승인 대기 중입니다.</strong><br>승인 완료 시 이메일로 안내드리겠습니다.';
+        auth.signOut();
+        btn.disabled = false;
+        btn.textContent = '로그인';
+        return;
+      }
+      if (profile.status === 'rejected') {
+        msg.className = 'form-status error';
+        msg.style.display = 'block';
+        msg.textContent = '가입이 거절되었습니다. 관리자에게 문의하세요.';
+        auth.signOut();
+        btn.disabled = false;
+        btn.textContent = '로그인';
+        return;
+      }
+      // approved
+      var params = new URLSearchParams(location.search);
+      var redirect = params.get('redirect');
+      if (profile.role === 'admin') {
+        location.href = baseUrl + '/admin/';
+      } else {
+        location.href = redirect || baseUrl + '/dashboard/';
+      }
+    })
+    .catch(function(err) {
+      msg.className = 'form-status error';
+      msg.style.display = 'block';
+      var errMsg = '로그인에 실패했습니다.';
+      if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
+        errMsg = '이메일 또는 비밀번호가 올바르지 않습니다.';
+      } else if (err.code === 'auth/too-many-requests') {
+        errMsg = '너무 많은 시도가 있었습니다. 잠시 후 다시 시도하세요.';
+      }
+      msg.textContent = errMsg;
+      btn.disabled = false;
+      btn.textContent = '로그인';
+    });
   return false;
 }
 </script>
