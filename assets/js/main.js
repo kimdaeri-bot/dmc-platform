@@ -26,7 +26,7 @@ document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') closeInquiry();
 });
 
-// --- Submit (mailto fallback) ---
+// --- Submit Inquiry (Firebase or mailto fallback) ---
 function submitInquiry(e) {
   e.preventDefault();
   var btn = document.getElementById('submitBtn');
@@ -36,14 +36,45 @@ function submitInquiry(e) {
     status.textContent = '개인정보 수집·이용에 동의해주세요.';
     return;
   }
+
   var tourName = document.getElementById('f_product').value;
+  var msg = document.getElementById('f_message').value;
+
+  // If logged in, save to Firestore
+  if (window.DMC_USER && window.DMC_USER.profile && window.DMC_USER.profile.status === 'approved' && typeof InquirySystem !== 'undefined') {
+    btn.disabled = true;
+    btn.textContent = '전송 중...';
+    InquirySystem.createInquiry({
+      tourTitle: tourName,
+      tourSlug: window._currentTourSlug || '',
+      dmcId: document.getElementById('f_operator_email').value || '',
+      dmcName: document.getElementById('f_operator').value || '',
+      subject: tourName + ' 문의',
+      message: '희망일: ' + (document.getElementById('f_date').value || '-') +
+        '\n인원: ' + (document.getElementById('f_pax').value || '-') + '명' +
+        '\n\n' + msg
+    }).then(function() {
+      status.className = 'form-status success';
+      status.textContent = '✅ 문의가 등록되었습니다. 대시보드에서 확인하세요.';
+      document.getElementById('inquiryForm').reset();
+      btn.disabled = false;
+      btn.textContent = '문의하기 전송';
+    }).catch(function(err) {
+      status.className = 'form-status error';
+      status.textContent = '문의 등록 실패: ' + err;
+      btn.disabled = false;
+      btn.textContent = '문의하기 전송';
+    });
+    return;
+  }
+
+  // Fallback: mailto
   var opEmail = document.getElementById('f_operator_email').value || 'info@londonshow.co.kr';
   var name = document.getElementById('f_name').value;
   var email = document.getElementById('f_email').value;
   var phone = document.getElementById('f_phone').value;
   var date = document.getElementById('f_date').value;
   var pax = document.getElementById('f_pax').value;
-  var msg = document.getElementById('f_message').value;
 
   var subject = encodeURIComponent('[DMC투어링크] ' + tourName + ' 문의');
   var body = encodeURIComponent(

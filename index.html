@@ -27,7 +27,7 @@ title: "DMC 투어링크 - 전 세계 현지투어 메타 플랫폼"
     <div class="hero-search-divider"></div>
     <div class="hero-search-item">
       <span class="hero-search-icon">📅</span>
-      <input type="date" id="hs-date" placeholder="날짜" style="border:none;background:transparent;font-family:inherit;font-size:15px;font-weight:500;color:var(--gray-900);padding:14px 4px;width:100%;cursor:pointer;outline:none;">
+      <input type="text" id="hs-date" readonly placeholder="날짜 선택" onclick="this.type='date';this.showPicker?this.showPicker():this.focus();" onchange="this.type='text';this.value=this.value?new Date(this.value+'T00:00').toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric'}):'';this.setAttribute('data-val',this.value);" style="border:none;background:transparent;font-family:inherit;font-size:15px;font-weight:500;color:var(--gray-900);padding:14px 4px;width:100%;cursor:pointer;outline:none;">
     </div>
     <div class="hero-search-divider"></div>
     <div class="hero-search-item">
