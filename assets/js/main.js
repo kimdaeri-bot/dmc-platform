@@ -165,3 +165,56 @@ function destSlide(dir) {
   if (!card) return;
   slider.scrollBy({ left: dir * card.offsetWidth * 2, behavior: 'smooth' });
 }
+
+// --- Gallery Lightbox ---
+var galleryImages = [];
+var galleryIndex = 0;
+(function() {
+  var thumbs = document.querySelectorAll('.hero-gallery-main img, .hero-thumb img');
+  thumbs.forEach(function(img) { galleryImages.push(img.src); });
+})();
+
+function openLightbox(idx) {
+  galleryIndex = idx;
+  var lb = document.getElementById('lightbox');
+  if (!lb) return;
+  lb.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  updateLightbox();
+}
+function closeLightbox(e) {
+  if (e && e.target !== document.getElementById('lightbox') && e.target !== document.querySelector('.lightbox-close')) return;
+  var lb = document.getElementById('lightbox');
+  if (lb) lb.classList.remove('open');
+  document.body.style.overflow = '';
+}
+function lightboxNav(dir, e) {
+  if (e) e.stopPropagation();
+  galleryIndex = (galleryIndex + dir + galleryImages.length) % galleryImages.length;
+  updateLightbox();
+}
+function updateLightbox() {
+  var img = document.getElementById('lightboxImg');
+  var counter = document.getElementById('lightboxCounter');
+  if (img && galleryImages[galleryIndex]) img.src = galleryImages[galleryIndex];
+  if (counter) counter.textContent = (galleryIndex + 1) + ' / ' + galleryImages.length;
+}
+document.addEventListener('keydown', function(e) {
+  if (!document.getElementById('lightbox') || !document.getElementById('lightbox').classList.contains('open')) return;
+  if (e.key === 'ArrowLeft') lightboxNav(-1);
+  if (e.key === 'ArrowRight') lightboxNav(1);
+  if (e.key === 'Escape') { document.getElementById('lightbox').classList.remove('open'); document.body.style.overflow = ''; }
+});
+
+// --- Accordion (Itinerary) ---
+function toggleAccordion(header) {
+  var body = header.nextElementSibling;
+  body.classList.toggle('open');
+  var toggle = header.querySelector('.tl-toggle');
+  if (toggle) toggle.style.transform = body.classList.contains('open') ? '' : 'rotate(-90deg)';
+}
+
+// --- FAQ ---
+function toggleFaq(el) {
+  el.parentElement.classList.toggle('open');
+}

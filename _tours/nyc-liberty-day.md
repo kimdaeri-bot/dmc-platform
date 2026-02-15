@@ -17,12 +17,95 @@ priceFrom: 130
 image: "🗽"
 description: "자유의 여신상 페리 + 맨해튼 핵심 명소를 하루에 둘러보는 투어. 타임스퀘어, 센트럴파크, 브루클린 브리지를 방문합니다."
 highlights: ["자유의 여신상 페리", "타임스퀘어 & 브로드웨이", "센트럴파크 산책", "브루클린 브리지 도보"]
+gallery:
+  - url: "https://images.unsplash.com/photo-1485738422979-f5c462d49f04?w=1200"
+    alt: "자유의 여신상"
+  - url: "https://images.unsplash.com/photo-1534430480872-3498386e7856?w=800"
+    alt: "타임스퀘어"
+  - url: "https://images.unsplash.com/photo-1568515387631-8b650bbcdb90?w=800"
+    alt: "센트럴파크"
+  - url: "https://images.unsplash.com/photo-1496588152823-86ff7695e68f?w=800"
+    alt: "브루클린 브리지"
+  - url: "https://images.unsplash.com/photo-1522083165195-3424ed129620?w=800"
+    alt: "맨해튼 스카이라인"
+summary_bar:
+  start_city: "뉴욕"
+  end_city: "뉴욕"
+  guide_language: "한국어"
+  difficulty: "쉬움"
+  age_range: "전 연령"
+included_categories:
+  가이드: ["한국어 가이드"]
+  식사: ["점심 (뉴욕 델리)"]
+  교통: ["호텔 픽업"]
+  기타: ["자유의 여신 페리 티켓"]
+excluded_categories:
+  식사: ["석식"]
+  기타: ["쇼 티켓", "여행자 보험"]
 included: ["호텔 픽업", "한국어 가이드", "자유의 여신 페리 티켓", "점심 (뉴욕 델리)"]
 excluded: ["석식", "쇼 티켓", "여행자 보험"]
 itinerary:
   - day: 1
     title: "뉴욕 종일투어"
     description: "08:30 호텔 픽업 → 09:30 자유의 여신 페리 → 12:00 점심 → 13:30 타임스퀘어 → 15:00 센트럴파크 → 16:30 브루클린 브리지 → 18:00 호텔"
+    stops: ["배터리파크", "자유의 여신상", "뉴욕 델리", "타임스퀘어", "센트럴파크", "브루클린 브리지"]
+    accommodation: ""
+    meals: { breakfast: false, lunch: true, dinner: false }
+    transport: "전용 밴 + 페리"
+    activities: ["자유의 여신상 페리 크루즈", "타임스퀘어 & 브로드웨이 거리 관광", "센트럴파크 산책", "브루클린 브리지 도보 횡단"]
+accommodation_info: []
+reviews:
+  average: 4.5
+  count: 167
+  categories:
+    일정: 4.4
+    교통: 4.3
+    가이드: 4.7
+    숙박: 0
+    식사: 4.5
+  items:
+    - author: "윤서현"
+      date: "2025-12-20"
+      rating: 5
+      text: "뉴욕의 핵심을 하루 만에 다 돌 수 있어서 좋았어요. 자유의 여신상 페리가 특히 인상적!"
+    - author: "David K."
+      date: "2025-11-15"
+      rating: 4
+      text: "가이드가 뉴욕에 대해 정말 잘 알고 있어서 숨은 이야기를 많이 들을 수 있었습니다."
+    - author: "장민호"
+      date: "2025-10-02"
+      rating: 4
+      text: "일정이 빡빡한 편이지만 알차게 돌아볼 수 있었습니다. 브루클린 브리지 도보가 좋았어요."
+departures:
+  - date: "2026-03-14"
+    price: 130
+    status: "available"
+    badge: "Instant Confirmation"
+  - date: "2026-03-21"
+    price: 130
+    status: "available"
+    badge: ""
+  - date: "2026-03-28"
+    price: 140
+    status: "filling"
+    badge: "Filling Fast"
+  - date: "2026-04-04"
+    price: 140
+    status: "available"
+    badge: "Instant Confirmation"
+  - date: "2026-04-11"
+    price: 145
+    status: "available"
+    badge: ""
+faq:
+  - q: "자유의 여신상 페데스탈에도 올라가나요?"
+    a: "기본 투어는 페리에서 관람합니다. 페데스탈 방문을 원하시면 사전에 말씀해주세요 (추가 $20)."
+  - q: "맨해튼 어느 지역 호텔이 픽업 가능한가요?"
+    a: "미드타운 (34th~59th St) 호텔 픽업이 기본이며, 다른 지역은 집결지로 오셔야 합니다."
+  - q: "브로드웨이 쇼 예약도 해주시나요?"
+    a: "투어 후 브로드웨이 쇼 예약을 대행해드릴 수 있습니다. 문의 시 말씀해주세요."
+  - q: "겨울에도 투어가 진행되나요?"
+    a: "네, 연중 무휴로 운영됩니다. 겨울에는 방한복을 꼭 준비해주세요."
 tags: ["추천"]
 featured: true
 ---

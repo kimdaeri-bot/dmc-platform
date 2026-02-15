@@ -7,109 +7,311 @@ layout: default
   {% if op.id == t.operatorId %}{% assign operator = op %}{% endif %}
 {% endfor %}
 
-<!-- Hero -->
-<div class="detail-hero">
-  <div class="container">
-    <p style="font-size:14px;opacity:0.8;margin-bottom:8px;">{{ t.countryName }} · {{ t.city }} · {{ t.category }}</p>
-    <h1>{{ t.title }}</h1>
-    <div class="meta">
-      ⏱️ {{ t.duration }} · 👥 최대 {{ t.groupSize }}명 · 🌐 {{ t.languages | join: ", " }}
+<!-- Hero with Gallery -->
+<div class="detail-hero-v2">
+  {% if t.gallery and t.gallery.size > 0 %}
+  <div class="hero-gallery">
+    <div class="hero-gallery-main">
+      <img src="{{ t.gallery[0].url }}" alt="{{ t.gallery[0].alt }}" id="galleryMain" onclick="openLightbox(0)">
     </div>
-    <div style="margin-top:20px;">
-      <span style="font-size:32px;font-weight:900;">${{ t.priceFrom }}~</span>
-      <span style="opacity:0.8;">/1인</span>
-    </div>
-    <div class="cta-buttons" style="margin-top:20px;justify-content:flex-start;">
-      <button class="btn btn-primary btn-lg" onclick="openInquiry('{{ t.title }}','{{ t.duration }}','{{ t.priceFrom }}','{{ operator.name | default: "" }}','{{ operator.contact.email | default: "" }}')">📧 문의하기</button>
-      <a href="{{ site.brand.kakao }}" target="_blank" class="btn btn-kakao btn-lg">💬 카카오톡 상담</a>
-      <a href="tel:{{ site.brand.phone }}" class="btn btn-outline btn-lg" style="border-color:white;color:white;">☎️ {{ site.brand.phone }}</a>
-    </div>
-  </div>
-</div>
-
-<!-- Info Bar -->
-<div class="container">
-  <div class="info-bar">
-    <div class="info-bar-item"><div class="label">지역</div><div class="value">{{ t.countryName }} {{ t.city }}</div></div>
-    <div class="info-bar-item"><div class="label">기간</div><div class="value">{{ t.duration }}</div></div>
-    <div class="info-bar-item"><div class="label">인원</div><div class="value">최대 {{ t.groupSize }}명</div></div>
-    <div class="info-bar-item"><div class="label">카테고리</div><div class="value">{{ t.category }}</div></div>
-    <div class="info-bar-item"><div class="label">가격</div><div class="value" style="color:var(--orange);">${{ t.priceFrom }}~</div></div>
-  </div>
-</div>
-
-<!-- Description -->
-<div class="section">
-  <div class="container">
-    <h2 class="section-title">📋 투어 소개</h2>
-    <p style="font-size:16px;line-height:1.8;margin-bottom:24px;">{{ t.description }}</p>
-
-    {% if t.highlights %}
-    <h3 style="font-size:18px;font-weight:700;color:var(--navy);margin-bottom:12px;">✨ 하이라이트</h3>
-    <ul style="list-style:none;padding:0;">
-      {% for h in t.highlights %}
-      <li style="padding:6px 0;font-size:15px;padding-left:24px;position:relative;"><span style="position:absolute;left:0;">⭐</span> {{ h }}</li>
+    <div class="hero-gallery-thumbs">
+      {% for img in t.gallery offset:1 %}
+      <div class="hero-thumb{% if forloop.index > 3 %} hero-thumb-more{% endif %}" onclick="openLightbox({{ forloop.index }})">
+        <img src="{{ img.url }}" alt="{{ img.alt }}">
+        {% if forloop.index == 4 and t.gallery.size > 5 %}
+        <div class="thumb-overlay">+{{ t.gallery.size | minus: 5 }}</div>
+        {% endif %}
+      </div>
       {% endfor %}
-    </ul>
+    </div>
+  </div>
+  <!-- Lightbox -->
+  <div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
+    <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
+    <button class="lightbox-prev" onclick="lightboxNav(-1, event)">&#10094;</button>
+    <img id="lightboxImg" src="" alt="">
+    <button class="lightbox-next" onclick="lightboxNav(1, event)">&#10095;</button>
+    <div class="lightbox-counter" id="lightboxCounter"></div>
+  </div>
+  {% else %}
+  <div class="detail-hero-fallback">
+    <span class="hero-emoji">{{ t.image }}</span>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Title Bar -->
+<div class="detail-title-bar">
+  <div class="container">
+    <p class="detail-breadcrumb">{{ t.countryName }} · {{ t.city }} · {{ t.category }}</p>
+    <h1>{{ t.title }}</h1>
+    {% if t.reviews %}
+    <div class="detail-rating-inline">
+      <span class="stars">{% assign full = t.reviews.average | floor %}{% for i in (1..5) %}{% if i <= full %}★{% else %}☆{% endif %}{% endfor %}</span>
+      <span class="rating-num">{{ t.reviews.average }}</span>
+      <span class="rating-count">({{ t.reviews.count }}개 리뷰)</span>
+    </div>
     {% endif %}
   </div>
 </div>
 
-<!-- Itinerary -->
-{% if t.itinerary %}
-<div class="section section-alt">
-  <div class="container">
-    <h2 class="section-title">🗓️ 상세 일정</h2>
-    <div class="timeline">
-      {% for day in t.itinerary %}
-      <div class="timeline-day">
-        <h3>Day {{ day.day }} — {{ day.title }}</h3>
-        <div class="desc">{{ day.description }}</div>
-      </div>
-      {% endfor %}
-    </div>
-    {{ content }}
+<!-- Summary Bar -->
+<div class="container">
+  <div class="summary-bar">
+    <div class="summary-item"><div class="summary-icon">📅</div><div class="summary-label">기간</div><div class="summary-value">{{ t.duration }}</div></div>
+    <div class="summary-item"><div class="summary-icon">📍</div><div class="summary-label">출발 → 도착</div><div class="summary-value">{{ t.summary_bar.start_city }} → {{ t.summary_bar.end_city }}</div></div>
+    <div class="summary-item"><div class="summary-icon">🗣️</div><div class="summary-label">가이드 언어</div><div class="summary-value">{{ t.summary_bar.guide_language }}</div></div>
+    <div class="summary-item"><div class="summary-icon">👥</div><div class="summary-label">그룹 크기</div><div class="summary-value">최대 {{ t.groupSize }}명</div></div>
+    <div class="summary-item"><div class="summary-icon">⛰️</div><div class="summary-label">난이도</div><div class="summary-value">{{ t.summary_bar.difficulty }}</div></div>
+    <div class="summary-item"><div class="summary-icon">🎂</div><div class="summary-label">연령대</div><div class="summary-value">{{ t.summary_bar.age_range }}</div></div>
   </div>
 </div>
-{% endif %}
 
-<!-- Inclusions -->
-{% if t.included %}
-<div class="section">
-  <div class="container">
-    <h2 class="section-title">📋 포함 / 불포함 사항</h2>
-    <div class="inclusions">
-      <div class="inclusion-list included">
-        <h3>✅ 포함 사항</h3>
-        <ul>{% for item in t.included %}<li>{{ item }}</li>{% endfor %}</ul>
-      </div>
-      <div class="inclusion-list excluded">
-        <h3>❌ 불포함 사항</h3>
-        <ul>{% for item in t.excluded %}<li>{{ item }}</li>{% endfor %}</ul>
+<!-- Main Content + Sidebar -->
+<div class="container detail-layout">
+  <div class="detail-main">
+
+    <!-- Description -->
+    <div class="detail-section">
+      <h2 class="section-title">📋 투어 소개</h2>
+      <p class="detail-desc">{{ t.description }}</p>
+      {% if t.highlights %}
+      <h3 class="detail-subtitle">✨ 하이라이트</h3>
+      <ul class="highlight-list">
+        {% for h in t.highlights %}
+        <li><span class="hl-icon">⭐</span> {{ h }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+    </div>
+
+    <!-- Day-by-Day Itinerary (Timeline) -->
+    {% if t.itinerary %}
+    <div class="detail-section">
+      <h2 class="section-title">🗓️ 상세 일정</h2>
+      <div class="timeline-v2">
+        {% for day in t.itinerary %}
+        <div class="tl-day" data-day="{{ day.day }}">
+          <div class="tl-marker"><span>{{ day.day }}</span></div>
+          <div class="tl-content">
+            <div class="tl-header" onclick="toggleAccordion(this)">
+              <h3>Day {{ day.day }} — {{ day.title }}</h3>
+              <span class="tl-toggle">▼</span>
+            </div>
+            <div class="tl-body open">
+              <p class="tl-desc">{{ day.description }}</p>
+
+              {% if day.stops and day.stops.size > 0 %}
+              <div class="tl-detail-row"><span class="tl-detail-icon">📍</span><div class="tl-detail-content"><strong>방문지:</strong> {{ day.stops | join: " → " }}</div></div>
+              {% endif %}
+
+              {% if day.activities and day.activities.size > 0 %}
+              <div class="tl-detail-row"><span class="tl-detail-icon">🎯</span><div class="tl-detail-content"><strong>포함 액티비티:</strong><ul class="tl-act-list">{% for act in day.activities %}<li>{{ act }}</li>{% endfor %}</ul></div></div>
+              {% endif %}
+
+              {% if day.transport and day.transport != "" %}
+              <div class="tl-detail-row"><span class="tl-detail-icon">🚌</span><div class="tl-detail-content"><strong>이동수단:</strong> {{ day.transport }}</div></div>
+              {% endif %}
+
+              <div class="tl-badges">
+                {% if day.meals.breakfast %}<span class="meal-badge">🍳 조식</span>{% endif %}
+                {% if day.meals.lunch %}<span class="meal-badge">🍽️ 중식</span>{% endif %}
+                {% if day.meals.dinner %}<span class="meal-badge">🌙 석식</span>{% endif %}
+              </div>
+
+              {% if day.accommodation and day.accommodation != "" %}
+              <div class="tl-detail-row"><span class="tl-detail-icon">🏨</span><div class="tl-detail-content"><strong>숙박:</strong> {{ day.accommodation }}</div></div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        {% endfor %}
       </div>
     </div>
-  </div>
-</div>
-{% endif %}
+    {% endif %}
 
-<!-- Operator Info -->
-{% if operator %}
-<div class="section section-alt">
-  <div class="container">
-    <h2 class="section-title">🏢 운영사 정보</h2>
-    <div class="operator-card">
-      <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;">
-        <span style="font-size:48px;">{{ operator.logo }}</span>
-        <div>
-          <h3 style="font-size:20px;font-weight:700;color:var(--navy);">{{ operator.name }}</h3>
-          <p style="font-size:14px;color:var(--gray-700);">설립 {{ operator.established }}년 · {{ operator.languages | join: ", " }}</p>
+    <!-- Where You'll Stay -->
+    {% if t.accommodation_info and t.accommodation_info.size > 0 %}
+    <div class="detail-section">
+      <h2 class="section-title">🏨 숙박 정보</h2>
+      <div class="accom-grid">
+        {% for accom in t.accommodation_info %}
+        <div class="accom-card">
+          <div class="accom-stars">{% for i in (1..accom.stars) %}★{% endfor %}</div>
+          <h3>{{ accom.name }}</h3>
+          <p class="accom-days">{{ accom.days }}</p>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Inclusions by Category -->
+    {% if t.included_categories %}
+    <div class="detail-section">
+      <h2 class="section-title">📋 포함 / 불포함 사항</h2>
+      <div class="inclusions-v2">
+        <div class="incl-col incl-yes">
+          <h3>✅ 포함 사항</h3>
+          {% for cat in t.included_categories %}
+          {% if cat[1].size > 0 %}
+          <div class="incl-category">
+            <h4>{{ cat[0] }}</h4>
+            <ul>{% for item in cat[1] %}<li>{{ item }}</li>{% endfor %}</ul>
+          </div>
+          {% endif %}
+          {% endfor %}
+        </div>
+        <div class="incl-col incl-no">
+          <h3>❌ 불포함 사항</h3>
+          {% for cat in t.excluded_categories %}
+          {% if cat[1].size > 0 %}
+          <div class="incl-category">
+            <h4>{{ cat[0] }}</h4>
+            <ul>{% for item in cat[1] %}<li>{{ item }}</li>{% endfor %}</ul>
+          </div>
+          {% endif %}
+          {% endfor %}
         </div>
       </div>
-      <p style="font-size:15px;line-height:1.7;">{{ operator.description }}</p>
     </div>
-  </div>
+    {% endif %}
+
+    <!-- Reviews -->
+    {% if t.reviews %}
+    <div class="detail-section">
+      <h2 class="section-title">⭐ 리뷰</h2>
+      <div class="review-summary">
+        <div class="review-score">
+          <div class="review-big-num">{{ t.reviews.average }}</div>
+          <div class="review-stars">{% assign full = t.reviews.average | floor %}{% for i in (1..5) %}{% if i <= full %}★{% else %}☆{% endif %}{% endfor %}</div>
+          <div class="review-total">{{ t.reviews.count }}개 리뷰</div>
+        </div>
+        <div class="review-cats">
+          {% for cat in t.reviews.categories %}
+          {% if cat[1] > 0 %}
+          <div class="review-cat-row">
+            <span class="cat-name">{{ cat[0] }}</span>
+            <div class="cat-bar"><div class="cat-bar-fill" style="width:{{ cat[1] | times: 20 }}%"></div></div>
+            <span class="cat-score">{{ cat[1] }}</span>
+          </div>
+          {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+      <div class="review-list">
+        {% for review in t.reviews.items %}
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-avatar">{{ review.author | slice: 0 }}</div>
+            <div>
+              <div class="review-author">{{ review.author }}</div>
+              <div class="review-date">{{ review.date }}</div>
+            </div>
+            <div class="review-rating">{% for i in (1..5) %}{% if i <= review.rating %}★{% else %}☆{% endif %}{% endfor %}</div>
+          </div>
+          <p class="review-text">{{ review.text }}</p>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Departures & Pricing -->
+    {% if t.departures %}
+    <div class="detail-section" id="departures">
+      <h2 class="section-title">📅 출발일 & 가격</h2>
+      <div class="departure-table">
+        <div class="dep-header">
+          <span>출발일</span><span>가격 (1인)</span><span>상태</span><span></span>
+        </div>
+        {% for dep in t.departures %}
+        <div class="dep-row{% if dep.status == 'filling' %} dep-filling{% endif %}">
+          <span class="dep-date">{{ dep.date }}</span>
+          <span class="dep-price">${{ dep.price }}</span>
+          <span class="dep-badge">
+            {% if dep.badge == "Filling Fast" %}<span class="badge badge-filling">🔥 Filling Fast</span>
+            {% elsif dep.badge == "Instant Confirmation" %}<span class="badge badge-instant">⚡ Instant Confirmation</span>
+            {% else %}<span class="badge badge-available">예약 가능</span>{% endif %}
+          </span>
+          <span><button class="btn btn-primary btn-sm" onclick="openInquiry('{{ t.title }} ({{ dep.date }})','{{ t.duration }}','{{ dep.price }}','{{ operator.name | default: "" }}','{{ operator.contact.email | default: "" }}')">문의하기</button></span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Operator Info (Enhanced) -->
+    {% if operator %}
+    <div class="detail-section">
+      <h2 class="section-title">🏢 운영사 정보</h2>
+      <div class="operator-card-v2">
+        <div class="op-header">
+          <span class="op-logo">{{ operator.logo }}</span>
+          <div class="op-info">
+            <h3>{{ operator.name }}</h3>
+            <p>설립 {{ operator.established }}년 · {{ operator.languages | join: ", " }}</p>
+          </div>
+        </div>
+        <p class="op-desc">{{ operator.description }}</p>
+        <div class="op-stats">
+          <div class="op-stat"><span class="op-stat-num">{{ operator.tourCount }}</span><span class="op-stat-label">투어 수</span></div>
+          <div class="op-stat"><span class="op-stat-num">{{ operator.ageRange }}</span><span class="op-stat-label">연령대</span></div>
+          <div class="op-stat"><span class="op-stat-num">{{ operator.responseTime }}</span><span class="op-stat-label">응답시간</span></div>
+          <div class="op-stat"><span class="op-stat-num">{{ operator.responseRate }}</span><span class="op-stat-label">응답률</span></div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- FAQ -->
+    {% if t.faq %}
+    <div class="detail-section">
+      <h2 class="section-title">❓ 자주 묻는 질문</h2>
+      <div class="faq-list">
+        {% for item in t.faq %}
+        <div class="faq-item">
+          <div class="faq-q" onclick="toggleFaq(this)">
+            <span>{{ item.q }}</span>
+            <span class="faq-toggle">+</span>
+          </div>
+          <div class="faq-a">{{ item.a }}</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    {{ content }}
+
+  </div><!-- /detail-main -->
+
+  <!-- Sidebar Booking Card -->
+  <aside class="detail-sidebar">
+    <div class="booking-card">
+      <div class="booking-price">
+        <span class="booking-from">From</span>
+        <span class="booking-amount">${{ t.priceFrom }}</span>
+        <span class="booking-per">/1인</span>
+      </div>
+      <div class="booking-meta">
+        <div>📅 {{ t.duration }}</div>
+        <div>👥 최대 {{ t.groupSize }}명</div>
+        <div>🗣️ {{ t.languages | join: ", " }}</div>
+      </div>
+      {% if t.departures %}
+      <div class="booking-next">
+        <div class="booking-next-label">다음 출발일</div>
+        <div class="booking-next-date">{{ t.departures[0].date }}</div>
+      </div>
+      {% endif %}
+      <button class="btn btn-primary btn-lg booking-btn" onclick="openInquiry('{{ t.title }}','{{ t.duration }}','{{ t.priceFrom }}','{{ operator.name | default: "" }}','{{ operator.contact.email | default: "" }}')">📧 문의하기</button>
+      <a href="{{ site.brand.kakao }}" target="_blank" class="btn btn-kakao booking-btn">💬 카카오톡 상담</a>
+      <a href="tel:{{ site.brand.phone }}" class="btn btn-outline booking-btn">☎️ {{ site.brand.phone }}</a>
+      <a href="#departures" class="booking-all-dates">모든 출발일 보기 ↓</a>
+    </div>
+  </aside>
 </div>
-{% endif %}
 
 <!-- Related Tours -->
 <div class="section">
@@ -120,7 +322,14 @@ layout: default
         {% if tour.continent == t.continent and tour.id != t.tourId %}
         <a href="{{ '/tour/' | append: tour.slug | append: '/' | relative_url }}" class="cruise-card-link">
           <div class="cruise-card">
-            <div class="cruise-card-image"><div class="placeholder">{{ tour.image }}</div></div>
+            <div class="cruise-card-image">
+              {% assign match = nil %}{% for tt in site.tours %}{% if tt.tourId == tour.id %}{% assign match = tt %}{% endif %}{% endfor %}
+              {% if match and match.gallery and match.gallery.size > 0 %}
+              <img src="{{ match.gallery[0].url }}" alt="{{ tour.title }}" style="width:100%;height:100%;object-fit:cover;">
+              {% else %}
+              <div class="placeholder">{{ tour.image }}</div>
+              {% endif %}
+            </div>
             <div class="cruise-card-body">
               <div class="cruise-card-meta">{{ tour.countryName }} · {{ tour.city }}</div>
               <div class="cruise-card-title">{{ tour.title }}</div>

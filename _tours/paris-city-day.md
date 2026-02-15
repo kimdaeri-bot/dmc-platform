@@ -17,12 +17,95 @@ priceFrom: 150
 image: "🗼"
 description: "파리의 핵심 명소를 하루에 둘러보는 프리미엄 시티투어. 에펠탑, 루브르 박물관, 샹젤리제, 몽마르트르를 방문합니다."
 highlights: ["에펠탑 2층 전망대", "루브르 박물관 가이드 투어", "샹젤리제 거리 산책", "몽마르트르 언덕 & 사크레쾨르"]
+gallery:
+  - url: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1200"
+    alt: "에펠탑 전경"
+  - url: "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=800"
+    alt: "파리 센 강"
+  - url: "https://images.unsplash.com/photo-1574158622682-e40e69881006?w=800"
+    alt: "루브르 박물관"
+  - url: "https://images.unsplash.com/photo-1550340499-a6c60fc8287c?w=800"
+    alt: "몽마르트르"
+  - url: "https://images.unsplash.com/photo-1431274172761-fca41d930114?w=800"
+    alt: "샹젤리제 거리"
+summary_bar:
+  start_city: "파리"
+  end_city: "파리"
+  guide_language: "한국어"
+  difficulty: "쉬움"
+  age_range: "전 연령"
+included_categories:
+  가이드: ["한국어 전문 가이드"]
+  식사: ["점심 (프랑스 비스트로)"]
+  교통: ["호텔 픽업"]
+  기타: ["에펠탑 입장료", "루브르 박물관 입장료"]
+excluded_categories:
+  식사: ["석식"]
+  기타: ["개인 쇼핑", "여행자 보험"]
 included: ["호텔 픽업", "한국어 가이드", "에펠탑+루브르 입장료", "점심 (프랑스 비스트로)"]
 excluded: ["석식", "개인 쇼핑", "여행자 보험"]
 itinerary:
   - day: 1
     title: "파리 종일투어"
     description: "09:00 호텔 픽업 → 09:30 에펠탑 → 12:00 점심 → 13:30 루브르 박물관 → 16:00 샹젤리제 → 17:30 몽마르트르 → 19:00 호텔"
+    stops: ["에펠탑", "프랑스 비스트로", "루브르 박물관", "샹젤리제 거리", "몽마르트르 & 사크레쾨르"]
+    accommodation: ""
+    meals: { breakfast: false, lunch: true, dinner: false }
+    transport: "전용 미니밴"
+    activities: ["에펠탑 2층 전망대 관람", "루브르 박물관 가이드 투어 (모나리자, 밀로의 비너스)", "샹젤리제 거리 산책", "몽마르트르 언덕 화가의 거리"]
+accommodation_info: []
+reviews:
+  average: 4.8
+  count: 215
+  categories:
+    일정: 4.7
+    교통: 4.6
+    가이드: 4.9
+    숙박: 0
+    식사: 4.8
+  items:
+    - author: "박서연"
+      date: "2025-12-01"
+      rating: 5
+      text: "가이드분의 해박한 지식 덕분에 루브르 박물관이 10배 더 재미있었어요! 점심 비스트로도 맛있었습니다."
+    - author: "James L."
+      date: "2025-11-10"
+      rating: 5
+      text: "하루 만에 파리 핵심을 다 볼 수 있어서 효율적이었습니다. 에펠탑에서 본 파리 전경이 잊히지 않아요."
+    - author: "김태영"
+      date: "2025-10-18"
+      rating: 4
+      text: "몽마르트르가 특히 좋았습니다. 시간이 좀 더 있었으면 하는 아쉬움이 있지만 전체적으로 훌륭한 투어!"
+departures:
+  - date: "2026-03-14"
+    price: 150
+    status: "available"
+    badge: "Instant Confirmation"
+  - date: "2026-03-21"
+    price: 150
+    status: "available"
+    badge: ""
+  - date: "2026-03-28"
+    price: 165
+    status: "filling"
+    badge: "Filling Fast"
+  - date: "2026-04-04"
+    price: 165
+    status: "available"
+    badge: "Instant Confirmation"
+  - date: "2026-04-11"
+    price: 175
+    status: "filling"
+    badge: "Filling Fast"
+faq:
+  - q: "루브르 박물관에서 얼마나 시간을 보내나요?"
+    a: "약 2시간 30분 동안 주요 작품 중심으로 가이드 투어가 진행됩니다."
+  - q: "에펠탑 대기 시간이 길지 않나요?"
+    a: "사전 예약 티켓을 사용하므로 대기 없이 바로 입장 가능합니다."
+  - q: "우천 시에도 진행되나요?"
+    a: "네, 실내 명소(루브르) 위주로 일정을 조정하여 정상 진행됩니다."
+  - q: "파리 외곽 호텔도 픽업 가능한가요?"
+    a: "파리 시내(1~20구) 호텔만 픽업 가능합니다. 외곽은 지정 집결지로 오셔야 합니다."
 tags: ["인기", "추천"]
 featured: true
 ---

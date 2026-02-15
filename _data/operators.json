@@ -12,7 +12,11 @@
       "website": "https://sakuratours.jp"
     },
     "established": 2010,
-    "languages": ["일본어", "영어", "한국어"]
+    "languages": ["일본어", "영어", "한국어"],
+    "tourCount": 24,
+    "ageRange": "전 연령",
+    "responseTime": "2시간 이내",
+    "responseRate": "98%"
   },
   {
     "id": "bali-paradise",
@@ -27,7 +31,11 @@
       "website": "https://baliparadise.id"
     },
     "established": 2015,
-    "languages": ["인도네시아어", "영어", "한국어"]
+    "languages": ["인도네시아어", "영어", "한국어"],
+    "tourCount": 18,
+    "ageRange": "전 연령",
+    "responseTime": "3시간 이내",
+    "responseRate": "95%"
   },
   {
     "id": "paris-elite",
@@ -42,7 +50,11 @@
       "website": "https://pariselite.fr"
     },
     "established": 2008,
-    "languages": ["프랑스어", "영어", "한국어"]
+    "languages": ["프랑스어", "영어", "한국어"],
+    "tourCount": 32,
+    "ageRange": "전 연령",
+    "responseTime": "1시간 이내",
+    "responseRate": "99%"
   },
   {
     "id": "aegean-discovery",
@@ -57,7 +69,11 @@
       "website": "https://aegeandiscovery.gr"
     },
     "established": 2012,
-    "languages": ["그리스어", "영어"]
+    "languages": ["그리스어", "영어"],
+    "tourCount": 15,
+    "ageRange": "만 8세 이상",
+    "responseTime": "4시간 이내",
+    "responseRate": "92%"
   },
   {
     "id": "liberty-tours",
@@ -72,7 +88,11 @@
       "website": "https://libertytours.nyc"
     },
     "established": 2005,
-    "languages": ["영어", "한국어", "중국어"]
+    "languages": ["영어", "한국어", "중국어"],
+    "tourCount": 28,
+    "ageRange": "전 연령",
+    "responseTime": "1시간 이내",
+    "responseRate": "97%"
   },
   {
     "id": "aussie-adventures",
@@ -87,6 +107,10 @@
       "website": "https://aussieadventures.com.au"
     },
     "established": 2011,
-    "languages": ["영어", "한국어"]
+    "languages": ["영어", "한국어"],
+    "tourCount": 20,
+    "ageRange": "전 연령",
+    "responseTime": "2시간 이내",
+    "responseRate": "96%"
   }
 ]
