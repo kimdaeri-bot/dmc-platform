@@ -1,0 +1,141 @@
+---
+layout: default
+title: 회원가입 - DMC 투어링크
+---
+
+<div class="section">
+  <div class="container">
+    <div class="auth-container auth-signup">
+      <div class="auth-card">
+        <h1 class="auth-title">회원가입</h1>
+        <p class="auth-subtitle">여행사(Travel Agency) 전용 B2B 플랫폼입니다.<br>가입 신청 후 관리자 승인이 필요합니다.</p>
+
+        <form id="signupForm" onsubmit="return handleSignup(event)">
+          <!-- 회사 정보 -->
+          <h3 class="auth-section-title">🏢 회사 정보</h3>
+          <div class="form-group">
+            <label for="companyKr">회사명 (국문) <span class="req">*</span></label>
+            <input type="text" id="companyKr" name="companyKr" placeholder="(주)OO여행사" required>
+          </div>
+          <div class="form-group">
+            <label for="companyEn">회사명 (영문) <span class="req">*</span></label>
+            <input type="text" id="companyEn" name="companyEn" placeholder="OO Travel Co., Ltd." required>
+          </div>
+          <div class="form-group">
+            <label for="bizNo">사업자등록번호 <span class="req">*</span></label>
+            <input type="text" id="bizNo" name="bizNo" placeholder="000-00-00000" required>
+          </div>
+
+          <!-- 담당자 정보 -->
+          <h3 class="auth-section-title">👤 담당자 정보</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="name">이름 <span class="req">*</span></label>
+              <input type="text" id="name" name="name" placeholder="홍길동" required>
+            </div>
+            <div class="form-group">
+              <label for="position">직책 <span class="req">*</span></label>
+              <input type="text" id="position" name="position" placeholder="과장" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="email">이메일 <span class="req">*</span></label>
+            <input type="email" id="email" name="email" placeholder="manager@company.com" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="password">비밀번호 <span class="req">*</span></label>
+              <input type="password" id="password" name="password" placeholder="8자 이상" required minlength="8">
+            </div>
+            <div class="form-group">
+              <label for="passwordConfirm">비밀번호 확인 <span class="req">*</span></label>
+              <input type="password" id="passwordConfirm" name="passwordConfirm" placeholder="비밀번호 재입력" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="phone">전화번호 <span class="req">*</span></label>
+            <input type="tel" id="phone" name="phone" placeholder="02-0000-0000" required>
+          </div>
+
+          <!-- 선택 정보 -->
+          <h3 class="auth-section-title">📋 선택 정보</h3>
+          <div class="form-group">
+            <label for="website">회사 웹사이트</label>
+            <input type="url" id="website" name="website" placeholder="https://www.company.com">
+          </div>
+          <div class="form-group">
+            <label>주요 취급 지역</label>
+            <div class="checkbox-grid">
+              <label class="checkbox-item"><input type="checkbox" name="region" value="asia"> 아시아</label>
+              <label class="checkbox-item"><input type="checkbox" name="region" value="europe"> 유럽</label>
+              <label class="checkbox-item"><input type="checkbox" name="region" value="americas"> 아메리카</label>
+              <label class="checkbox-item"><input type="checkbox" name="region" value="oceania"> 오세아니아</label>
+              <label class="checkbox-item"><input type="checkbox" name="region" value="africa"> 아프리카</label>
+              <label class="checkbox-item"><input type="checkbox" name="region" value="middle-east"> 중동</label>
+            </div>
+          </div>
+
+          <!-- 약관 동의 -->
+          <h3 class="auth-section-title">📄 약관 동의</h3>
+          <div class="terms-agree">
+            <label class="checkbox-item">
+              <input type="checkbox" id="agreeAll" onchange="toggleAll(this)">
+              <strong>전체 동의</strong>
+            </label>
+            <hr style="margin:12px 0;border:none;border-top:1px solid var(--gray-200);">
+            <label class="checkbox-item">
+              <input type="checkbox" name="agree" value="terms" class="agree-item" required>
+              <a href="{{ '/terms/' | relative_url }}" target="_blank">이용약관</a> 동의 <span class="req">(필수)</span>
+            </label>
+            <label class="checkbox-item">
+              <input type="checkbox" name="agree" value="privacy" class="agree-item" required>
+              <a href="{{ '/privacy/' | relative_url }}" target="_blank">개인정보처리방침</a> 동의 <span class="req">(필수)</span>
+            </label>
+            <label class="checkbox-item">
+              <input type="checkbox" name="agree" value="marketing" class="agree-item">
+              마케팅 정보 수신 동의 <span style="color:var(--gray-500);">(선택)</span>
+            </label>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-lg" style="width:100%;margin-top:24px;">회원가입 신청</button>
+        </form>
+
+        <div id="signupMessage" class="form-status" style="margin-top:16px;"></div>
+
+        <div class="auth-footer">
+          <p>이미 회원이신가요? <a href="{{ '/auth/login/' | relative_url }}">로그인</a></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function toggleAll(el) {
+  document.querySelectorAll('.agree-item').forEach(function(cb) { cb.checked = el.checked; });
+}
+document.querySelectorAll('.agree-item').forEach(function(cb) {
+  cb.addEventListener('change', function() {
+    var all = document.querySelectorAll('.agree-item');
+    var checked = document.querySelectorAll('.agree-item:checked');
+    document.getElementById('agreeAll').checked = all.length === checked.length;
+  });
+});
+function handleSignup(e) {
+  e.preventDefault();
+  var pw = document.getElementById('password').value;
+  var pwc = document.getElementById('passwordConfirm').value;
+  var msg = document.getElementById('signupMessage');
+  if (pw !== pwc) {
+    msg.className = 'form-status error';
+    msg.style.display = 'block';
+    msg.textContent = '비밀번호가 일치하지 않습니다.';
+    return false;
+  }
+  document.getElementById('signupForm').style.display = 'none';
+  msg.className = 'form-status success';
+  msg.style.display = 'block';
+  msg.innerHTML = '<strong>✅ 가입 신청이 완료되었습니다.</strong><br>관리자 승인 후 이용 가능합니다. 승인 완료 시 입력하신 이메일로 안내드리겠습니다.';
+  return false;
+}
+</script>

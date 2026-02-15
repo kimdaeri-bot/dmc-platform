@@ -3,38 +3,60 @@ layout: default
 title: "DMC 투어링크 - 전 세계 현지투어 메타 플랫폼"
 ---
 
-<!-- Hero -->
-<div class="hero">
-  <div class="hero-content container">
-    <h1>전 세계 현지투어를<br>한눈에 비교하세요</h1>
-    <p>아시아, 유럽, 아메리카, 오세아니아 — 검증된 DMC 파트너의 현지투어를 만나보세요</p>
+<!-- Hero with Background Image -->
+<section class="hero-v2" style="background-image:url('{{ '/assets/images/hero-bg.jpg' | relative_url }}');">
+  <div class="hero-v2-overlay"></div>
+  <div class="hero-v2-content">
+    <h1 class="hero-v2-title">Local Tours,<br>Simplified</h1>
+    <p class="hero-v2-sub">전 세계 검증된 DMC 파트너의 현지투어를 한눈에 비교하고, 견적을 요청하세요.</p>
   </div>
-</div>
+  <!-- Search Bar on Hero -->
+  <div class="hero-search-bar">
+    <div class="hero-search-item">
+      <span class="hero-search-icon">📍</span>
+      <select id="hs-continent">
+        <option value="">어디로?</option>
+        <option value="asia">아시아</option>
+        <option value="europe">유럽</option>
+        <option value="americas">아메리카</option>
+        <option value="oceania">오세아니아</option>
+        <option value="africa">아프리카</option>
+        <option value="middle-east">중동</option>
+      </select>
+    </div>
+    <div class="hero-search-divider"></div>
+    <div class="hero-search-item">
+      <span class="hero-search-icon">📅</span>
+      <select id="hs-month">
+        <option value="">출발 시기</option>
+        <option>2026년 상반기</option>
+        <option>2026년 하반기</option>
+        <option>2027년</option>
+      </select>
+    </div>
+    <div class="hero-search-divider"></div>
+    <div class="hero-search-item">
+      <span class="hero-search-icon">🏷️</span>
+      <select id="hs-category">
+        <option value="">카테고리</option>
+        <option value="시티투어">시티투어</option>
+        <option value="자연/관광">자연/관광</option>
+        <option value="문화/체험">문화/체험</option>
+      </select>
+    </div>
+    <button class="hero-search-btn" id="homeSearchBtn">🔍 검색</button>
+  </div>
+</section>
 
-<!-- Search Bar -->
-<div class="filter-bar container">
-  <div class="filter-group">
-    <label>대륙</label>
-    <select id="hf-continent">
-      <option value="">전체</option>
-      <option value="asia">아시아</option>
-      <option value="europe">유럽</option>
-      <option value="americas">아메리카</option>
-      <option value="oceania">오세아니아</option>
-      <option value="africa">아프리카</option>
-      <option value="middle-east">중동</option>
-    </select>
+<!-- Stats Bar -->
+<div class="stats-bar">
+  <div class="container stats-bar-inner">
+    <span>🌐 <strong>6개 대륙</strong>의 검증된 DMC 파트너</span>
+    <span class="stats-dot">·</span>
+    <span>🏢 <strong>다양한 현지 운영사</strong>의 투어 상품</span>
+    <span class="stats-dot">·</span>
+    <span>✅ <strong>B2B 전용</strong> 여행사 맞춤 플랫폼</span>
   </div>
-  <div class="filter-group">
-    <label>카테고리</label>
-    <select id="hf-category">
-      <option value="">전체</option>
-      <option value="시티투어">시티투어</option>
-      <option value="자연/관광">자연/관광</option>
-      <option value="문화/체험">문화/체험</option>
-    </select>
-  </div>
-  <button class="btn btn-primary" id="homeSearchBtn">🔍 검색</button>
 </div>
 
 <!-- Continent Slider -->

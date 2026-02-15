@@ -1,0 +1,48 @@
+---
+layout: default
+title: 로그인 - DMC 투어링크
+---
+
+<div class="section">
+  <div class="container">
+    <div class="auth-container auth-login">
+      <div class="auth-card">
+        <h1 class="auth-title">로그인</h1>
+        <p class="auth-subtitle">DMC 투어링크 B2B 플랫폼에 오신 것을 환영합니다.</p>
+
+        <form id="loginForm" onsubmit="return handleLogin(event)">
+          <div class="form-group">
+            <label for="email">이메일 <span class="req">*</span></label>
+            <input type="email" id="email" name="email" placeholder="business@company.com" required>
+          </div>
+          <div class="form-group">
+            <label for="password">비밀번호 <span class="req">*</span></label>
+            <input type="password" id="password" name="password" placeholder="비밀번호를 입력하세요" required>
+          </div>
+          <div class="form-group" style="display:flex;justify-content:space-between;align-items:center;">
+            <label class="checkbox-inline"><input type="checkbox" name="remember"> 로그인 유지</label>
+            <a href="#" class="auth-link">비밀번호 찾기</a>
+          </div>
+          <button type="submit" class="btn btn-primary btn-lg" style="width:100%;margin-top:8px;">로그인</button>
+        </form>
+
+        <div id="loginMessage" class="form-status" style="margin-top:16px;"></div>
+
+        <div class="auth-footer">
+          <p>아직 회원이 아니신가요? <a href="{{ '/auth/signup/' | relative_url }}">회원가입</a></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function handleLogin(e) {
+  e.preventDefault();
+  var msg = document.getElementById('loginMessage');
+  msg.className = 'form-status success';
+  msg.style.display = 'block';
+  msg.textContent = '데모 모드: 로그인 기능은 정적 사이트에서 지원되지 않습니다.';
+  return false;
+}
+</script>
