@@ -19,6 +19,7 @@ title: 투어 상세 - DMC 투어링크
 .tv-price{font-size:28px;font-weight:900;color:var(--orange)}
 .tv-actions{display:flex;gap:12px;margin-top:16px;justify-content:center}
 .tv-grid{display:grid;grid-template-columns:2fr 1fr;gap:32px}
+.tv-itin-day{font-weight:700;color:var(--navy);margin-right:4px}
 @media(max-width:768px){.tv-grid{grid-template-columns:1fr}.tv-hero{height:200px}}
 </style>
 
@@ -28,11 +29,12 @@ title: 투어 상세 - DMC 투어링크
 </div>
 
 <script>
-(function(){
+window.addEventListener('load', function(){
   var params = new URLSearchParams(window.location.search);
   var tourId = params.get('id');
   var container = document.getElementById('tourViewContent');
   if (!tourId) { container.innerHTML = '<p style="text-align:center;color:#c62828">투어 ID가 지정되지 않았습니다.</p>'; return; }
+  if (typeof db === 'undefined') { container.innerHTML = '<p style="text-align:center;color:#c62828">데이터베이스 연결 실패</p>'; return; }
 
   db.collection('parsed_tours').doc(tourId).get().then(function(doc) {
     if (!doc.exists || doc.data().status !== 'approved') {
@@ -40,40 +42,77 @@ title: 투어 상세 - DMC 투어링크
       return;
     }
     var d = doc.data();
-    var img = d.imageUrl ? '<img src="'+d.imageUrl+'" alt="">' : '🌍';
-    var html = '<div class="tv-hero">'+(d.imageUrl?'<img src="'+esc(d.imageUrl)+'" alt="">':'🌍')+'</div>';
+    var name = d.title || d.tourName || '';
+    var dest = (d.countryName||'') + (d.city ? ' · '+d.city : '') || d.destination || '';
+    var imgUrl = d.imageUrl || (d.image && d.image.match(/^https?:\/\//) ? d.image : '');
+    var heroContent = imgUrl ? '<img src="'+esc(imgUrl)+'" alt="">' : (d.image || '🌍');
+    var priceStr = d.priceFrom ? '$' + d.priceFrom + '~' : (d.price || '문의');
+    var dmcName = d.operatorName || d.dmcName || '';
+
+    var html = '<div class="tv-hero">'+heroContent+'</div>';
     html += '<div class="tv-grid"><div>';
-    html += '<h1 class="tv-title">' + esc(d.tourName) + '</h1>';
-    html += '<div class="tv-meta">📍 ' + esc(d.destination||'') + ' · ⏱️ ' + esc(d.duration||'') + (d.dmcName?' · 🏢 '+esc(d.dmcName):'') + '</div>';
+    html += '<h1 class="tv-title">' + esc(name) + '</h1>';
+    html += '<div class="tv-meta">📍 ' + esc(dest) + ' · ⏱️ ' + esc(d.duration||'') + (dmcName ? ' · 🏢 '+esc(dmcName) : '') + '</div>';
 
     if (d.description) { html += '<div class="tv-section"><h3>📝 설명</h3><p>' + esc(d.description) + '</p></div>'; }
     if (d.highlights && d.highlights.length) { html += renderList('✨ 하이라이트', d.highlights); }
-    if (d.itinerary && d.itinerary.length) { html += renderList('📅 일정', d.itinerary); }
-    if (d.includes && d.includes.length) { html += renderList('✅ 포함 사항', d.includes); }
-    if (d.excludes && d.excludes.length) { html += renderList('❌ 불포함 사항', d.excludes); }
+    if (d.itinerary && d.itinerary.length) {
+      html += '<div class="tv-section"><h3>📅 일정</h3><ul>';
+      d.itinerary.forEach(function(item) {
+        if (typeof item === 'object' && item.day) {
+          html += '<li><span class="tv-itin-day">Day ' + item.day + ':</span> ' + esc(item.title || '') + (item.description ? ' - ' + esc(item.description) : '') + '</li>';
+        } else {
+          html += '<li>' + esc(String(item)) + '</li>';
+        }
+      });
+      html += '</ul></div>';
+    }
+    if (d.included && d.included.length) { html += renderList('✅ 포함 사항', d.included); }
+    if (d.excluded && d.excluded.length) { html += renderList('❌ 불포함 사항', d.excluded); }
+    // legacy field names
+    if (d.includes && d.includes.length && !d.included) { html += renderList('✅ 포함 사항', d.includes); }
+    if (d.excludes && d.excludes.length && !d.excluded) { html += renderList('❌ 불포함 사항', d.excludes); }
+    if (d.tags && d.tags.length) {
+      html += '<div class="tv-section"><div style="display:flex;flex-wrap:wrap;gap:8px">';
+      d.tags.forEach(function(tag){ html += '<span style="display:inline-block;padding:4px 12px;background:var(--gray-100);border-radius:20px;font-size:12px;color:var(--gray-700)">#'+esc(tag)+'</span>'; });
+      html += '</div></div>';
+    }
 
     html += '</div><div>';
-    html += '<div class="tv-price-box"><div style="font-size:13px;color:var(--gray-700);margin-bottom:8px">가격</div>';
-    html += '<div class="tv-price">' + esc(d.price||'문의') + '</div>';
+    html += '<div class="tv-price-box"><div style="font-size:13px;color:var(--gray-700);margin-bottom:8px">1인 가격</div>';
+    html += '<div class="tv-price">' + esc(priceStr) + '</div>';
+    if (d.duration) html += '<div style="font-size:13px;color:var(--gray-500);margin-top:4px">'+esc(d.duration)+'</div>';
+    if (d.groupSize) html += '<div style="font-size:13px;color:var(--gray-500);margin-top:2px">최대 '+d.groupSize+'명</div>';
+    if (d.languages && d.languages.length) html += '<div style="font-size:13px;color:var(--gray-500);margin-top:2px">🗣️ '+esc(d.languages.join(', '))+'</div>';
     html += '<div class="tv-actions"><button class="btn btn-primary btn-lg" onclick="openInquiryForTour()">💬 문의하기</button></div>';
-    html += '</div></div></div>';
+    html += '</div>';
+    if (dmcName) {
+      html += '<div style="background:var(--gray-50);border-radius:12px;padding:16px;margin-top:16px;text-align:center">';
+      html += '<div style="font-size:13px;color:var(--gray-500);margin-bottom:4px">운영사</div>';
+      html += '<div style="font-size:16px;font-weight:700;color:var(--navy)">'+esc(dmcName)+'</div>';
+      html += '</div>';
+    }
+    html += '</div></div>';
 
     container.innerHTML = html;
 
     window.openInquiryForTour = function() {
       if (typeof InquirySystem !== 'undefined' && InquirySystem.openInquiryModal) {
-        InquirySystem.openInquiryModal(d.tourName, d.dmcName||'');
+        InquirySystem.openInquiryModal(name, dmcName);
       } else {
         alert('문의 시스템을 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
       }
     };
+  }).catch(function(e) {
+    console.error('tour-view error:', e);
+    container.innerHTML = '<p style="text-align:center;color:#c62828">투어 정보를 불러오는 데 실패했습니다.</p>';
   });
 
   function renderList(title, items) {
     var h = '<div class="tv-section"><h3>'+title+'</h3><ul>';
-    (Array.isArray(items)?items:[items]).forEach(function(i){ h += '<li>'+esc(i)+'</li>'; });
+    (Array.isArray(items)?items:[items]).forEach(function(i){ h += '<li>'+esc(typeof i === 'object' ? JSON.stringify(i) : String(i))+'</li>'; });
     return h + '</ul></div>';
   }
   function esc(s){if(!s)return'';var d=document.createElement('div');d.textContent=s;return d.innerHTML}
-})();
+});
 </script>
