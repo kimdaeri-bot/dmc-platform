@@ -3,116 +3,196 @@ layout: default
 title: 투어 상세 - DMC 투어링크
 ---
 
-<style>
-.tv-wrap{max-width:var(--max-width);margin:0 auto;padding:32px 20px}
-.tv-hero{width:100%;height:320px;border-radius:16px;overflow:hidden;margin-bottom:24px;background:linear-gradient(135deg,var(--navy),var(--navy-light));display:flex;align-items:center;justify-content:center;color:#fff;font-size:64px}
-.tv-hero img{width:100%;height:100%;object-fit:cover}
-.tv-title{font-size:28px;font-weight:900;color:var(--navy);margin-bottom:8px}
-.tv-meta{font-size:14px;color:var(--gray-700);margin-bottom:24px}
-.tv-section{margin-bottom:24px}
-.tv-section h3{font-size:18px;font-weight:700;color:var(--navy);margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--gray-200)}
-.tv-section ul{list-style:none;padding:0}
-.tv-section li{padding:6px 0;font-size:14px;line-height:1.6;border-bottom:1px solid var(--gray-100)}
-.tv-section li::before{content:'•';color:var(--orange);font-weight:700;margin-right:8px}
-.tv-section p{font-size:14px;line-height:1.7;color:var(--gray-900)}
-.tv-price-box{background:var(--gray-50);border-radius:12px;padding:20px;text-align:center;margin-bottom:24px}
-.tv-price{font-size:28px;font-weight:900;color:var(--orange)}
-.tv-actions{display:flex;gap:12px;margin-top:16px;justify-content:center}
-.tv-grid{display:grid;grid-template-columns:2fr 1fr;gap:32px}
-.tv-itin-day{font-weight:700;color:var(--navy);margin-right:4px}
-@media(max-width:768px){.tv-grid{grid-template-columns:1fr}.tv-hero{height:200px}}
-</style>
-
-<div class="tv-wrap">
-  <a href="{{ '/' | relative_url }}" class="btn-back" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border:1px solid var(--gray-300);border-radius:8px;background:#fff;font-size:13px;font-weight:600;cursor:pointer;color:var(--gray-700);margin-bottom:16px;text-decoration:none">← 돌아가기</a>
-  <div id="tourViewContent"><p style="text-align:center;padding:60px;color:var(--gray-500)">로딩 중...</p></div>
-</div>
+<div id="tourViewContent"><p style="text-align:center;padding:80px 20px;color:var(--gray-500);font-size:18px">로딩 중...</p></div>
 
 <script>
 window.addEventListener('load', function(){
   var params = new URLSearchParams(window.location.search);
   var tourId = params.get('id');
   var container = document.getElementById('tourViewContent');
-  if (!tourId) { container.innerHTML = '<p style="text-align:center;color:#c62828">투어 ID가 지정되지 않았습니다.</p>'; return; }
-  if (typeof db === 'undefined') { container.innerHTML = '<p style="text-align:center;color:#c62828">데이터베이스 연결 실패</p>'; return; }
+  if (!tourId) { container.innerHTML = '<p style="text-align:center;color:#c62828;padding:80px">투어 ID가 지정되지 않았습니다.</p>'; return; }
+  if (typeof db === 'undefined') { container.innerHTML = '<p style="text-align:center;color:#c62828;padding:80px">데이터베이스 연결 실패</p>'; return; }
 
   db.collection('parsed_tours').doc(tourId).get().then(function(doc) {
     if (!doc.exists || doc.data().status !== 'approved') {
-      container.innerHTML = '<p style="text-align:center;color:#c62828">투어를 찾을 수 없거나 아직 승인되지 않았습니다.</p>';
+      container.innerHTML = '<p style="text-align:center;color:#c62828;padding:80px">투어를 찾을 수 없거나 아직 승인되지 않았습니다.</p>';
       return;
     }
     var d = doc.data();
     var name = d.title || d.tourName || '';
-    var dest = (d.countryName||'') + (d.city ? ' · '+d.city : '') || d.destination || '';
+    var dest = (d.countryName||'') + (d.city ? ' · '+d.city : '');
     var imgUrl = d.imageUrl || (d.image && d.image.match(/^https?:\/\//) ? d.image : '');
-    var heroContent = imgUrl ? '<img src="'+esc(imgUrl)+'" alt="">' : (d.image || '🌍');
-    var priceStr = d.priceFrom ? '$' + d.priceFrom + '~' : (d.price || '문의');
+    var emoji = (!imgUrl && d.image) ? d.image : '🌍';
+    var priceStr = d.priceFrom ? '$' + d.priceFrom : (d.price || '문의');
     var dmcName = d.operatorName || d.dmcName || '';
+    var included = d.included || d.includes || [];
+    var excluded = d.excluded || d.excludes || [];
+    var langs = d.languages || [];
 
-    var html = '<div class="tv-hero">'+heroContent+'</div>';
-    html += '<div class="tv-grid"><div>';
-    html += '<h1 class="tv-title">' + esc(name) + '</h1>';
-    html += '<div class="tv-meta">📍 ' + esc(dest) + ' · ⏱️ ' + esc(d.duration||'') + (dmcName ? ' · 🏢 '+esc(dmcName) : '') + '</div>';
+    var html = '';
 
-    if (d.description) { html += '<div class="tv-section"><h3>📝 설명</h3><p>' + esc(d.description) + '</p></div>'; }
-    if (d.highlights && d.highlights.length) { html += renderList('✨ 하이라이트', d.highlights); }
-    if (d.itinerary && d.itinerary.length) {
-      html += '<div class="tv-section"><h3>📅 일정</h3><ul>';
-      d.itinerary.forEach(function(item) {
-        if (typeof item === 'object' && item.day) {
-          html += '<li><span class="tv-itin-day">Day ' + item.day + ':</span> ' + esc(item.title || '') + (item.description ? ' - ' + esc(item.description) : '') + '</li>';
-        } else {
-          html += '<li>' + esc(String(item)) + '</li>';
-        }
-      });
-      html += '</ul></div>';
+    // ── Hero ──
+    html += '<div class="detail-hero-v2">';
+    if (imgUrl) {
+      html += '<div class="hero-gallery"><div class="hero-gallery-main"><img src="'+esc(imgUrl)+'" alt="'+esc(name)+'"></div></div>';
+    } else {
+      html += '<div class="detail-hero-fallback"><span class="hero-emoji">'+emoji+'</span></div>';
     }
-    if (d.included && d.included.length) { html += renderList('✅ 포함 사항', d.included); }
-    if (d.excluded && d.excluded.length) { html += renderList('❌ 불포함 사항', d.excluded); }
-    // legacy field names
-    if (d.includes && d.includes.length && !d.included) { html += renderList('✅ 포함 사항', d.includes); }
-    if (d.excludes && d.excludes.length && !d.excluded) { html += renderList('❌ 불포함 사항', d.excludes); }
-    if (d.tags && d.tags.length) {
-      html += '<div class="tv-section"><div style="display:flex;flex-wrap:wrap;gap:8px">';
-      d.tags.forEach(function(tag){ html += '<span style="display:inline-block;padding:4px 12px;background:var(--gray-100);border-radius:20px;font-size:12px;color:var(--gray-700)">#'+esc(tag)+'</span>'; });
+    html += '</div>';
+
+    // ── Title Bar ──
+    html += '<div class="detail-title-bar"><div class="container">';
+    html += '<p class="detail-breadcrumb">'+esc(d.countryName||'')+' · '+esc(d.city||'')+' · '+esc(d.category||'')+'</p>';
+    html += '<h1>'+esc(name)+'</h1>';
+    html += '</div></div>';
+
+    // ── Summary Bar ──
+    html += '<div class="container"><div class="summary-bar">';
+    if (d.duration) html += '<div class="summary-item"><div class="summary-icon">📅</div><div class="summary-label">기간</div><div class="summary-value">'+esc(d.duration)+'</div></div>';
+    if (dest) html += '<div class="summary-item"><div class="summary-icon">📍</div><div class="summary-label">목적지</div><div class="summary-value">'+esc(dest)+'</div></div>';
+    if (langs.length) html += '<div class="summary-item"><div class="summary-icon">🗣️</div><div class="summary-label">가이드 언어</div><div class="summary-value">'+esc(langs.join(', '))+'</div></div>';
+    if (d.groupSize) html += '<div class="summary-item"><div class="summary-icon">👥</div><div class="summary-label">그룹 크기</div><div class="summary-value">최대 '+esc(String(d.groupSize))+'명</div></div>';
+    html += '</div></div>';
+
+    // ── Main + Sidebar Layout ──
+    html += '<div class="container detail-layout"><div class="detail-main">';
+
+    // Description
+    if (d.description) {
+      html += '<div class="detail-section"><h2 class="section-title">📋 투어 소개</h2>';
+      html += '<p class="detail-desc">'+esc(d.description)+'</p>';
+      if (d.highlights && d.highlights.length) {
+        html += '<h3 class="detail-subtitle">✨ 하이라이트</h3><ul class="highlight-list">';
+        d.highlights.forEach(function(h){ html += '<li><span class="hl-icon">⭐</span> '+esc(String(h))+'</li>'; });
+        html += '</ul>';
+      }
+      html += '</div>';
+    }
+
+    // Itinerary Timeline
+    if (d.itinerary && d.itinerary.length) {
+      html += '<div class="detail-section"><h2 class="section-title">🗓️ 상세 일정</h2><div class="timeline-v2">';
+      d.itinerary.forEach(function(item, idx){
+        var isObj = typeof item === 'object' && item !== null;
+        var dayNum = isObj && item.day ? item.day : (idx+1);
+        var dayTitle = isObj && item.title ? item.title : (typeof item === 'string' ? item : '');
+        var dayDesc = isObj && item.description ? item.description : '';
+
+        html += '<div class="tl-day" data-day="'+dayNum+'">';
+        html += '<div class="tl-marker"><span>'+dayNum+'</span></div>';
+        html += '<div class="tl-content">';
+        html += '<div class="tl-header" onclick="toggleAccordion(this)">';
+        html += '<h3>Day '+dayNum;
+        if (dayTitle) html += ' — '+esc(dayTitle);
+        html += '</h3><span class="tl-toggle">▼</span></div>';
+        html += '<div class="tl-body open">';
+        if (dayDesc) html += '<p class="tl-desc">'+esc(dayDesc)+'</p>';
+        if (isObj && item.stops && item.stops.length) {
+          html += '<div class="tl-detail-row"><span class="tl-detail-icon">📍</span><div class="tl-detail-content"><strong>방문지:</strong> '+esc(item.stops.join(' → '))+'</div></div>';
+        }
+        if (isObj && item.activities && item.activities.length) {
+          html += '<div class="tl-detail-row"><span class="tl-detail-icon">🎯</span><div class="tl-detail-content"><strong>포함 액티비티:</strong><ul class="tl-act-list">';
+          item.activities.forEach(function(a){ html += '<li>'+esc(a)+'</li>'; });
+          html += '</ul></div></div>';
+        }
+        if (isObj && item.transport) {
+          html += '<div class="tl-detail-row"><span class="tl-detail-icon">🚌</span><div class="tl-detail-content"><strong>이동수단:</strong> '+esc(item.transport)+'</div></div>';
+        }
+        // Meal badges
+        if (isObj && item.meals) {
+          html += '<div class="tl-badges">';
+          if (item.meals.breakfast) html += '<span class="meal-badge">🍳 조식</span>';
+          if (item.meals.lunch) html += '<span class="meal-badge">🍽️ 중식</span>';
+          if (item.meals.dinner) html += '<span class="meal-badge">🌙 석식</span>';
+          html += '</div>';
+        }
+        if (isObj && item.accommodation) {
+          html += '<div class="tl-detail-row"><span class="tl-detail-icon">🏨</span><div class="tl-detail-content"><strong>숙박:</strong> '+esc(item.accommodation)+'</div></div>';
+        }
+        html += '</div></div></div>';
+      });
       html += '</div></div>';
     }
 
-    html += '</div><div>';
-    html += '<div class="tv-price-box"><div style="font-size:13px;color:var(--gray-700);margin-bottom:8px">1인 가격</div>';
-    html += '<div class="tv-price">' + esc(priceStr) + '</div>';
-    if (d.duration) html += '<div style="font-size:13px;color:var(--gray-500);margin-top:4px">'+esc(d.duration)+'</div>';
-    if (d.groupSize) html += '<div style="font-size:13px;color:var(--gray-500);margin-top:2px">최대 '+d.groupSize+'명</div>';
-    if (d.languages && d.languages.length) html += '<div style="font-size:13px;color:var(--gray-500);margin-top:2px">🗣️ '+esc(d.languages.join(', '))+'</div>';
-    html += '<div class="tv-actions"><button class="btn btn-primary btn-lg" onclick="openInquiryForTour()">💬 문의하기</button></div>';
-    html += '</div>';
-    if (dmcName) {
-      html += '<div style="background:var(--gray-50);border-radius:12px;padding:16px;margin-top:16px;text-align:center">';
-      html += '<div style="font-size:13px;color:var(--gray-500);margin-bottom:4px">운영사</div>';
-      html += '<div style="font-size:16px;font-weight:700;color:var(--navy)">'+esc(dmcName)+'</div>';
-      html += '</div>';
+    // Inclusions / Exclusions
+    if (included.length || excluded.length) {
+      html += '<div class="detail-section"><h2 class="section-title">📋 포함 / 불포함 사항</h2>';
+      html += '<div class="inclusions-v2">';
+      if (included.length) {
+        html += '<div class="incl-col incl-yes"><h3>✅ 포함 사항</h3><ul>';
+        included.forEach(function(i){ html += '<li>'+esc(String(i))+'</li>'; });
+        html += '</ul></div>';
+      }
+      if (excluded.length) {
+        html += '<div class="incl-col incl-no"><h3>❌ 불포함 사항</h3><ul>';
+        excluded.forEach(function(i){ html += '<li>'+esc(String(i))+'</li>'; });
+        html += '</ul></div>';
+      }
+      html += '</div></div>';
     }
+
+    // Tags
+    if (d.tags && d.tags.length) {
+      html += '<div class="detail-section"><div style="display:flex;flex-wrap:wrap;gap:8px">';
+      d.tags.forEach(function(tag){ html += '<span class="tag-badge">#'+esc(tag)+'</span>'; });
+      html += '</div></div>';
+    }
+
+    // Operator Info
+    if (dmcName) {
+      html += '<div class="detail-section"><h2 class="section-title">🏢 운영사 정보</h2>';
+      html += '<div class="operator-card-v2"><div class="op-header">';
+      html += '<span class="op-logo">🏢</span>';
+      html += '<div class="op-info"><h3>'+esc(dmcName)+'</h3>';
+      if (dest) html += '<p>'+esc(dest)+'</p>';
+      html += '</div></div></div></div>';
+    }
+
+    html += '</div>'; // /detail-main
+
+    // ── Sidebar ──
+    html += '<aside class="detail-sidebar"><div class="booking-card">';
+    html += '<div class="booking-price"><span class="booking-from">From</span>';
+    html += '<span class="booking-amount">'+esc(priceStr)+'</span>';
+    html += '<span class="booking-per">/1인</span></div>';
+    html += '<div class="booking-meta">';
+    if (d.duration) html += '<div>📅 '+esc(d.duration)+'</div>';
+    if (d.groupSize) html += '<div>👥 최대 '+esc(String(d.groupSize))+'명</div>';
+    if (langs.length) html += '<div>🗣️ '+esc(langs.join(', '))+'</div>';
+    html += '</div>';
+    html += '<button class="btn btn-primary btn-lg booking-btn" onclick="openInquiryForTour()">문의하기</button>';
+    html += '</div></aside>';
+
+    html += '</div>'; // /detail-layout
+
+    // ── CTA ──
+    html += '<div class="cta-section"><div class="container">';
+    html += '<h2>이 투어가 마음에 드셨나요?</h2>';
+    html += '<p>DMC 투어링크가 현지 운영사와 직접 연결해드립니다.</p>';
+    html += '<div class="cta-buttons"><button class="btn btn-primary btn-lg" onclick="openInquiryForTour()">문의하기</button></div>';
     html += '</div></div>';
 
     container.innerHTML = html;
 
+    // Update page title
+    if (name) document.title = name + ' - DMC 투어링크';
+
+    // Inquiry handler
     window.openInquiryForTour = function() {
-      if (typeof InquirySystem !== 'undefined' && InquirySystem.openInquiryModal) {
+      if (typeof openInquiry === 'function') {
+        openInquiry(name, d.duration||'', priceStr, dmcName, '');
+      } else if (typeof InquirySystem !== 'undefined' && InquirySystem.openInquiryModal) {
         InquirySystem.openInquiryModal(name, dmcName);
       } else {
         alert('문의 시스템을 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
       }
     };
+
   }).catch(function(e) {
     console.error('tour-view error:', e);
-    container.innerHTML = '<p style="text-align:center;color:#c62828">투어 정보를 불러오는 데 실패했습니다.</p>';
+    container.innerHTML = '<p style="text-align:center;color:#c62828;padding:80px">투어 정보를 불러오는 데 실패했습니다.</p>';
   });
 
-  function renderList(title, items) {
-    var h = '<div class="tv-section"><h3>'+title+'</h3><ul>';
-    (Array.isArray(items)?items:[items]).forEach(function(i){ h += '<li>'+esc(typeof i === 'object' ? JSON.stringify(i) : String(i))+'</li>'; });
-    return h + '</ul></div>';
-  }
-  function esc(s){if(!s)return'';var d=document.createElement('div');d.textContent=s;return d.innerHTML}
+  function esc(s){if(!s)return'';var el=document.createElement('div');el.textContent=s;return el.innerHTML}
 });
 </script>
