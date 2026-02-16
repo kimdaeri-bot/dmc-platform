@@ -144,7 +144,7 @@ title: "DMC 투어링크 - 전 세계 현지투어 메타 플랫폼"
 
 <!-- Firestore 승인 상품 → 인기 투어에 합침 -->
 <script>
-(function(){
+window.addEventListener('load', function(){
   var baseUrl = window.BASE_URL || '';
   if (typeof db === 'undefined') return;
   db.collection('parsed_tours').get().then(function(snap) {
@@ -169,9 +169,9 @@ title: "DMC 투어링크 - 전 세계 현지투어 메타 플랫폼"
         '<span class="btn btn-sm btn-secondary">자세히보기</span></div></div></div></a>';
     });
     grid.insertAdjacentHTML('afterbegin', html);
-  });
+  }).catch(function(e){ console.error('Firestore parsed_tours error:', e); });
   function esc(s){if(!s)return'';var d=document.createElement('div');d.textContent=s;return d.innerHTML}
-})();
+});
 </script>
 
 <!-- Partner Logo Slider -->
