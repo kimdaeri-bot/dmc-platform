@@ -111,7 +111,7 @@ title: "DMC 투어링크 - 전 세계 현지투어 메타 플랫폼"
       <h2 class="section-title">🔥 인기 투어</h2>
       <p class="section-subtitle">여행자들이 가장 많이 찾는 투어</p>
     </div>
-    <div class="cruise-grid">
+    <div class="cruise-grid" id="popularTours">
       {% for tour in site.data.tours %}
         {% if tour.featured %}
         <a href="{{ '/tour/' | append: tour.slug | append: '/' | relative_url }}" class="cruise-card-link">
@@ -142,35 +142,24 @@ title: "DMC 투어링크 - 전 세계 현지투어 메타 플랫폼"
   </div>
 </div>
 
-<!-- Firestore 승인 상품 -->
-<div class="section">
-  <div class="container">
-    <div class="section-header">
-      <h2 class="section-title">🆕 새로운 투어</h2>
-      <p class="section-subtitle">DMC 파트너가 등록한 최신 투어</p>
-    </div>
-    <div class="cruise-grid" id="firestoreTours">
-      <p style="text-align:center;color:var(--gray-500);grid-column:1/-1">로딩 중...</p>
-    </div>
-  </div>
-</div>
-
+<!-- Firestore 승인 상품 → 인기 투어에 합침 -->
 <script>
 (function(){
   var baseUrl = window.BASE_URL || '';
+  if (typeof db === 'undefined') return;
   db.collection('parsed_tours').get().then(function(snap) {
-    var grid = document.getElementById('firestoreTours');
+    var grid = document.getElementById('popularTours');
     if (!grid) return;
     var tours = [];
     snap.forEach(function(doc){ var d = doc.data(); if(d.status==='approved'){d._id=doc.id; tours.push(d);} });
-    if (tours.length === 0) { grid.innerHTML = '<p style="text-align:center;color:var(--gray-500);grid-column:1/-1">아직 등록된 투어가 없습니다.</p>'; return; }
+    if (tours.length === 0) return;
     var html = '';
     tours.forEach(function(t) {
       var imgStr = (t.image && t.image.match(/^https?:\/\//)) ? '<img src="'+t.image+'" alt="'+esc(t.title)+'" style="width:100%;height:100%;object-fit:cover">' : '<div class="placeholder">'+(t.image||'🌍')+'</div>';
       var dest = (t.countryName||'') + (t.city ? ' · '+t.city : '') || t.destination || '';
       var price = t.priceFrom ? '$'+t.priceFrom+'~' : (t.price||'');
       html += '<a href="'+baseUrl+'/tour-view/?id='+t._id+'" class="cruise-card-link"><div class="cruise-card">' +
-        '<div class="cruise-card-image">'+imgStr+'</div>' +
+        '<div class="cruise-card-image">'+imgStr+'<div class="cruise-card-tags"><span class="tag tag-new">🆕 NEW</span></div></div>' +
         '<div class="cruise-card-body">' +
         '<div class="cruise-card-meta">'+ esc(dest) +'</div>' +
         '<div class="cruise-card-title">'+ esc(t.title||t.tourName||'') +'</div>' +
@@ -179,7 +168,7 @@ title: "DMC 투어링크 - 전 세계 현지투어 메타 플랫폼"
         '<div class="cruise-card-price">'+ esc(price) +' <small>/1인</small></div>' +
         '<span class="btn btn-sm btn-secondary">자세히보기</span></div></div></div></a>';
     });
-    grid.innerHTML = html;
+    grid.insertAdjacentHTML('afterbegin', html);
   });
   function esc(s){if(!s)return'';var d=document.createElement('div');d.textContent=s;return d.innerHTML}
 })();
